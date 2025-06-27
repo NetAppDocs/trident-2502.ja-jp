@@ -1,0 +1,436 @@
+---
+sidebar: sidebar 
+permalink: trident-use/worker-node-prep.html 
+keywords: storage class, manage storage class, storage classes, kubernetes storage classes, worker node, nfs, iscsi, kubernetes clusters, self-healing, healing, nvme, tcp 
+summary: Kubernetes クラスタ内のすべてのワーカーノードが、ポッド用にプロビジョニングしたボリュームをマウントできる必要があります。いずれかのバックエンドに ONTAP-NAS 、 ONTAP-NAS-エコノミー 、 ONTAP-NAS-flexgroup ドライバを使用している場合は、ワーカーノードに NFS ツールが必要です。それ以外の場合は iSCSI ツールが必要です。 
+---
+= ワーカーノードを準備します
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Kubernetesクラスタ内のすべてのワーカーノードが、ポッド用にプロビジョニングしたボリュームをマウントできる必要があります。ワーカーノードを準備するには、ドライバの選択に基づいて、NFS、iSCSI、NVMe/TCP、またはFCの各ツールをインストールする必要があります。
+
+
+
+== 適切なツールを選択する
+
+ドライバを組み合わせて使用している場合は、ドライバに必要なすべてのツールをインストールする必要があります。最近のバージョンのRed Hat Enterprise Linux CoreOS（RHCOS）では、デフォルトでツールがインストールされています。
+
+.NFSツール
+link:https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#nfs-volumes["NFSツールのインストール"]を使用している場合： `ontap-nas`、 `ontap-nas-economy` `ontap-nas-flexgroup`、、 `azure-netapp-files` `gcp-cvs`。
+
+.iSCSIツール
+link:https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#install-the-iscsi-tools["iSCSIツールをインストール"]を使用している場合： `ontap-san`、 `ontap-san-economy` `solidfire-san`。
+
+.NVMeツール
+link:https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#nvmetcp-volumes["NVMeツールをインストールする"]をNon-Volatile Memory Express（NVMe）over TCP（NVMe/TCP）プロトコルに使用している場合 `ontap-san`。
+
+
+NOTE: NetAppでは、NVMe/TCPにONTAP 9.12以降を推奨しています。
+
+.SCSI over FCツール
+についてFCおよびFC-NVMe SANホストの設定の詳細、を参照してくださいlink:https://docs.netapp.com/us-en/ontap/san-config/configure-fc-nvme-hosts-ha-pairs-reference.html["FCおよびFC-NVMe SANホストの構成方法"]は。
+
+link:https://docs.netapp.com/us-en/trident/trident-use/worker-node-prep.html#install-the-fc-tools["FCツールのインストール"]をsanType（SCSI over FC）で `fcp`使用している場合 `ontap-san`。
+
+*考慮事項*：* SCSI over FCはOpenShiftおよびKubeVirt環境でサポートされています。* SCSI over FCはDockerではサポートされていません。* iSCSIの自己回復機能は、SCSI over FCには適用されません。
+
+
+
+== ノードサービスの検出
+
+Tridentは、ノードでiSCSIサービスまたはNFSサービスを実行できるかどうかを自動的に検出しようとします。
+
+
+NOTE: ノードサービス検出で検出されたサービスが特定されますが、サービスが適切に設定されていることは保証されませ逆に、検出されたサービスがない場合も、ボリュームのマウントが失敗する保証はありません。
+
+.イベントを確認します
+Tridentは、検出されたサービスを識別するためのイベントをノードに対して作成します。次のイベントを確認するには、を実行します。
+
+[listing]
+----
+kubectl get event -A --field-selector involvedObject.name=<Kubernetes node name>
+----
+.検出されたサービスを確認
+Tridentは、TridentノードCR上の各ノードで有効になっているサービスを識別します。検出されたサービスを表示するには、を実行します。
+
+[listing]
+----
+tridentctl get node -o wide -n <Trident namespace>
+----
+
+
+== NFSボリューム
+
+オペレーティングシステム用のコマンドを使用して、NFSツールをインストールします。ブート時にNFSサービスが開始されていることを確認します。
+
+[role="tabbed-block"]
+====
+.RHEL 8以降
+--
+[listing]
+----
+sudo yum install -y nfs-utils
+----
+--
+.Ubuntu
+--
+[listing]
+----
+sudo apt-get install -y nfs-common
+----
+--
+====
+
+WARNING: NFSツールをインストールしたあとにワーカーノードをリブートして、コンテナにボリュームを接続する際の障害を回避します。
+
+
+
+== iSCSI ボリューム
+
+Tridentでは、iSCSIセッションの確立、LUNのスキャン、マルチパスデバイスの検出、フォーマット、ポッドへのマウントを自動的に実行できます。
+
+
+
+=== iSCSIの自己回復機能
+
+ONTAPシステムの場合、Tridentは5分ごとにiSCSIの自己修復を実行し、次のことを実現します。
+
+. *希望するiSCSIセッションの状態と現在のiSCSIセッションの状態を識別します
+. *希望する状態と現在の状態を比較して、必要な修理を特定します。Tridentは、修理の優先順位と、修理をいつプリエンプトするかを決定します。
+. *現在のiSCSIセッションの状態を希望するiSCSIセッションの状態に戻すために必要な修復*を実行します。
+
+
+
+NOTE: 自己修復アクティビティのログは、それぞれのデーモンセットポッドのコンテナにあり `trident-main`ます。ログを表示するには、Tridentのインストール時にを「true」に設定しておく必要があります `debug`。
+
+Trident iSCSIの自己修復機能を使用すると、次のことを防止できます。
+
+* ネットワーク接続問題 後に発生する可能性がある古いiSCSIセッションまたは正常でないiSCSIセッション。セッションが古くなった場合、Tridentは7分間待機してからログアウトし、ポータルとの接続を再確立します。
++
+
+NOTE: たとえば、ストレージコントローラでCHAPシークレットがローテーションされた場合にネットワークが接続を失うと、古い（_stale_）CHAPシークレットが保持されることがあります。自己修復では、これを認識し、自動的にセッションを再確立して、更新されたCHAPシークレットを適用できます。
+
+* iSCSIセッションがありません
+* LUNが見つかりません
+
+
+* Tridentをアップグレードする前に考慮すべきポイント*
+
+* ノード単位のigroup（23.04以降で導入）のみを使用している場合、iSCSIの自己修復によってSCSIバス内のすべてのデバイスに対してSCSI再スキャンが開始されます。
+* バックエンドを対象としたigroup（23.04で廃止）のみを使用している場合、iSCSIの自己修復によってSCSIバス内の正確なLUN IDのSCSI再スキャンが開始されます。
+* ノード単位のigroupとバックエンドを対象としたigroupが混在している場合、iSCSIの自己修復によってSCSIバス内の正確なLUN IDのSCSI再スキャンが開始されます。
+
+
+
+
+=== iSCSIツールをインストール
+
+使用しているオペレーティングシステム用のコマンドを使用して、iSCSIツールをインストールします。
+
+.開始する前に
+* Kubernetes クラスタ内の各ノードには一意の IQN を割り当てる必要があります。* これは必須の前提条件です * 。
+* ドライバとElement OS 12.5以前でRHCOSバージョン4.5以降またはその他のRHEL互換Linuxディストリビューションを使用している場合 `solidfire-san`は、でCHAP認証アルゴリズムがMD5に設定されていることを確認し `/etc/iscsi/iscsid.conf`てください。セキュアなFIPS準拠のCHAPアルゴリズムSHA1、SHA-256、およびSHA3-256はElement 12.7で使用できます。
++
+[listing]
+----
+sudo sed -i 's/^\(node.session.auth.chap_algs\).*/\1 = MD5/' /etc/iscsi/iscsid.conf
+----
+* iSCSI PVSでRHEL / Red Hat Enterprise Linux CoreOS（RHCOS）を実行するワーカーノードを使用する場合は、StorageClassでmountOptionを指定してインラインのスペース再生を実行します `discard`。を参照してください https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/managing_file_systems/discarding-unused-blocks_managing-file-systems["Red Hat のドキュメント"^]。
+
+
+[role="tabbed-block"]
+====
+.RHEL 8以降
+--
+. 次のシステムパッケージをインストールします。
++
+[listing]
+----
+sudo yum install -y lsscsi iscsi-initiator-utils device-mapper-multipath
+----
+. iscsi-initiator-utils のバージョンが 6.2.0.874-2.el7 以降であることを確認します。
++
+[listing]
+----
+rpm -q iscsi-initiator-utils
+----
+. マルチパスを有効化：
++
+[listing]
+----
+sudo mpathconf --enable --with_multipathd y --find_multipaths n
+----
++
+
+NOTE: の下に `defaults`含むを `find_multipaths no`確認します `/etc/multipath.conf`。
+
+. および `multipathd`が実行されていることを確認し `iscsid`ます。
++
+[listing]
+----
+sudo systemctl enable --now iscsid multipathd
+----
+. 有効にして開始 `iscsi`：
++
+[listing]
+----
+sudo systemctl enable --now iscsi
+----
+
+
+--
+.Ubuntu
+--
+. 次のシステムパッケージをインストールします。
++
+[listing]
+----
+sudo apt-get install -y open-iscsi lsscsi sg3-utils multipath-tools scsitools
+----
+. open-iscsi バージョンが 2.0.874-5ubuntu2.10 以降（ bionic の場合）または 2.0.874-7.1ubuntu6.1 以降（ Focal の場合）であることを確認します。
++
+[listing]
+----
+dpkg -l open-iscsi
+----
+. スキャンを手動に設定：
++
+[listing]
+----
+sudo sed -i 's/^\(node.session.scan\).*/\1 = manual/' /etc/iscsi/iscsid.conf
+----
+. マルチパスを有効化：
++
+[listing]
+----
+sudo tee /etc/multipath.conf <<-EOF
+defaults {
+    user_friendly_names yes
+    find_multipaths no
+}
+EOF
+sudo systemctl enable --now multipath-tools.service
+sudo service multipath-tools restart
+----
++
+
+NOTE: の下に `defaults`含むを `find_multipaths no`確認します `/etc/multipath.conf`。
+
+. とが `multipath-tools`有効で実行されていることを確認し `open-iscsi`ます。
++
+[listing]
+----
+sudo systemctl status multipath-tools
+sudo systemctl enable --now open-iscsi.service
+sudo systemctl status open-iscsi
+----
++
+
+NOTE: Ubuntu 18.04の場合は、iSCSIデーモンを開始する前に `open-iscsi`でターゲットポートを検出する必要があります `iscsiadm`。または、サービスを変更して自動的に開始する `iscsid`こともできます `iscsi`。
+
+
+
+--
+====
+
+
+=== iSCSI自己回復の設定または無効化
+
+次のTrident iSCSI自己修復設定を構成して、古いセッションを修正できます。
+
+* * iSCSIの自己修復間隔*：iSCSIの自己修復を実行する頻度を指定します（デフォルト：5分）。小さい数値を設定することで実行頻度を高めるか、大きい数値を設定することで実行頻度を下げることができます。
+
+
+[NOTE]
+====
+iSCSIの自己修復間隔を0に設定すると、iSCSIの自己修復が完全に停止します。iSCSIの自己修復を無効にすることは推奨しません。iSCSIの自己修復が意図したとおりに機能しない、またはデバッグ目的で機能しない特定のシナリオでのみ無効にする必要があります。
+
+====
+* * iSCSI自己回復待機時間*：正常でないセッションからログアウトして再ログインを試みるまでのiSCSI自己回復の待機時間を決定します（デフォルト：7分）。健全でないと識別されたセッションがログアウトされてから再度ログインしようとするまでの待機時間を長くするか、またはログアウトしてログインしてからログインするまでの時間を短くするように設定できます。
+
+
+[role="tabbed-block"]
+====
+.Helm
+--
+iSCSIの自己修復設定を設定または変更するには、Helmのインストール時またはHelmの更新時にパラメータと `iscsiSelfHealingWaitTime`パラメータを渡します `iscsiSelfHealingInterval`。
+
+次の例では、iSCSIの自己修復間隔を3分、自己修復の待機時間を6分に設定しています。
+
+[listing]
+----
+helm install trident trident-operator-100.2502.0.tgz --set iscsiSelfHealingInterval=3m0s --set iscsiSelfHealingWaitTime=6m0s -n trident
+----
+--
+.Tridentctl
+--
+iSCSIの自己修復設定を構成または変更するには、tridentctlのインストールまたは更新時にパラメータと `iscsi-self-healing-wait-time`パラメータを渡します `iscsi-self-healing-interval`。
+
+次の例では、iSCSIの自己修復間隔を3分、自己修復の待機時間を6分に設定しています。
+
+[listing]
+----
+tridentctl install --iscsi-self-healing-interval=3m0s --iscsi-self-healing-wait-time=6m0s -n trident
+----
+--
+====
+
+
+== NVMe/TCPホリユウム
+
+オペレーティングシステムに対応したコマンドを使用してNVMeツールをインストールします。
+
+[NOTE]
+====
+* NVMeにはRHEL 9以降が必要です。
+* Kubernetesノードのカーネルバージョンが古すぎる場合や、使用しているカーネルバージョンに対応するNVMeパッケージがない場合は、ノードのカーネルバージョンをNVMeパッケージで更新しなければならないことがあります。
+
+
+====
+[role="tabbed-block"]
+====
+.RHEL 9
+--
+[listing]
+----
+sudo yum install nvme-cli
+sudo yum install linux-modules-extra-$(uname -r)
+sudo modprobe nvme-tcp
+----
+--
+.Ubuntu
+--
+[listing]
+----
+sudo apt install nvme-cli
+sudo apt -y install linux-modules-extra-$(uname -r)
+sudo modprobe nvme-tcp
+----
+--
+====
+
+
+=== インストールの確認
+
+インストールが完了したら、次のコマンドを使用して、Kubernetesクラスタ内の各ノードに一意のNQNが割り当てられていることを確認します。
+
+[listing]
+----
+cat /etc/nvme/hostnqn
+----
+
+WARNING: Tridentでは、NVMeがダウンしてもパスがあきらめないように値が変更され `ctrl_device_tmo`ます。この設定は変更しないでください。
+
+
+
+== SCSI over FCボリューム
+
+Fibre Channel（FC；ファイバチャネル）プロトコルをTridentで使用して、ONTAPシステムでストレージリソースをプロビジョニングおよび管理できるようになりました。
+
+
+
+=== 前提条件
+
+FCに必要なネットワークとノードを設定します。
+
+
+
+==== ネットワーク設定
+
+. ターゲットインターフェイスのWWPNを取得します。詳細については、を参照してください https://docs.netapp.com/us-en/ontap-cli//network-interface-show.html["network interface show"^] 。
+. イニシエータ（ホスト）のインターフェイスのWWPNを取得します。
++
+対応するホストオペレーティングシステムユーティリティを参照してください。
+
+. ホストとターゲットのWWPNを使用してFCスイッチにゾーニングを設定します。
++
+詳細については、各スイッチベンダーのドキュメントを参照してください。
+
++
+詳細については、次のONTAPドキュメントを参照してください。
+
++
+** https://docs.netapp.com/us-en/ontap/san-config/fibre-channel-fcoe-zoning-concept.html["ファイバチャネルとFCoEのゾーニングの概要"^]
+** https://docs.netapp.com/us-en/ontap/san-config/configure-fc-nvme-hosts-ha-pairs-reference.html["FCおよびFC-NVMe SANホストの構成方法"^]
+
+
+
+
+
+
+=== FCツールのインストール
+
+オペレーティングシステム用のコマンドを使用して、FCツールをインストールします。
+
+* FC PVSでRHEL / Red Hat Enterprise Linux CoreOS（RHCOS）を実行するワーカーノードを使用する場合は、StorageClassでmountOptionを指定してインラインのスペース再生を実行します `discard`。を参照してください https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/8/html/managing_file_systems/discarding-unused-blocks_managing-file-systems["Red Hat のドキュメント"^]。
+
+
+[role="tabbed-block"]
+====
+.RHEL 8以降
+--
+. 次のシステムパッケージをインストールします。
++
+[listing]
+----
+sudo yum install -y lsscsi device-mapper-multipath
+----
+. マルチパスを有効化：
++
+[listing]
+----
+sudo mpathconf --enable --with_multipathd y --find_multipaths n
+----
++
+
+NOTE: の下に `defaults`含むを `find_multipaths no`確認します `/etc/multipath.conf`。
+
+. が実行中であることを確認し `multipathd`ます。
++
+[listing]
+----
+sudo systemctl enable --now multipathd
+----
+
+
+--
+.Ubuntu
+--
+. 次のシステムパッケージをインストールします。
++
+[listing]
+----
+sudo apt-get install -y lsscsi sg3-utils multipath-tools scsitools
+----
+. マルチパスを有効化：
++
+[listing]
+----
+sudo tee /etc/multipath.conf <<-EOF
+defaults {
+    user_friendly_names yes
+    find_multipaths no
+}
+EOF
+sudo systemctl enable --now multipath-tools.service
+sudo service multipath-tools restart
+----
++
+
+NOTE: の下に `defaults`含むを `find_multipaths no`確認します `/etc/multipath.conf`。
+
+. が有効で実行中であることを確認し `multipath-tools`ます。
++
+[listing]
+----
+sudo systemctl status multipath-tools
+----
+
+
+--
+====

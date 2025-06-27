@@ -1,0 +1,296 @@
+---
+sidebar: sidebar 
+permalink: trident-use/vol-import.html 
+keywords: volumes, import volumes, drivers, tridentctl import, pv, persistent volumes, pvc, disaster recovery, dr, clone, reuse, managed volume, unmanaged volume, managed 
+summary: 'を使用して、既存のストレージボリュームをKubernetes PVとしてインポートできます `tridentctl import`。' 
+---
+= ボリュームをインポート
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+を使用して、既存のストレージボリュームをKubernetes PVとしてインポートできます `tridentctl import`。
+
+
+
+== 概要と考慮事項
+
+Tridentにボリュームをインポートする目的は次のとおりです。
+
+* アプリケーションをコンテナ化し、既存のデータセットを再利用する
+* 一時的なアプリケーションにはデータセットのクローンを使用
+* 障害が発生したKubernetesクラスタを再構築します
+* ディザスタリカバリ時にアプリケーションデータを移行
+
+
+.考慮事項
+ボリュームをインポートする前に、次の考慮事項を確認してください。
+
+* Tridentでインポートできるのは、RW（読み取り/書き込み）タイプのONTAPボリュームのみです。DP（データ保護）タイプのボリュームはSnapMirrorデスティネーションボリュームです。ボリュームをTridentにインポートする前に、ミラー関係を解除する必要があります。
+* アクティブな接続がないボリュームをインポートすることを推奨します。アクティブに使用されているボリュームをインポートするには、ボリュームのクローンを作成してからインポートを実行します。
++
+
+WARNING: Kubernetesは以前の接続を認識せず、アクティブなボリュームをポッドに簡単に接続できるため、これはブロックボリュームで特に重要です。その結果、データが破損する可能性があります。
+
+* PVCで指定する必要がありますが、 `StorageClass`Tridentはインポート時にこのパラメータを使用しません。ストレージクラスは、ボリュームの作成時に、ストレージ特性に基づいて使用可能なプールから選択するために使用されます。ボリュームはすでに存在するため、インポート時にプールを選択する必要はありません。そのため、PVCで指定されたストレージクラスと一致しないバックエンドまたはプールにボリュームが存在してもインポートは失敗しません。
+* 既存のボリュームサイズはPVCで決定され、設定されます。ストレージドライバによってボリュームがインポートされると、 PV は ClaimRef を使用して PVC に作成されます。
++
+** 再利用ポリシーは、PVでは最初ににに設定されてい `retain`ます。Kubernetes が PVC と PV を正常にバインドすると、再利用ポリシーがストレージクラスの再利用ポリシーに合わせて更新されます。
+** ストレージクラスの再利用ポリシーがの場合、 `delete`PVが削除されるとストレージボリュームが削除されます。
+
+
+* デフォルトでは、TridentはPVCを管理し、バックエンドでFlexVol volumeとLUNの名前を変更します。フラグを渡して管理対象外のボリュームをインポートできます `--no-manage`。を使用する場合 `--no-manage`、Tridentはオブジェクトのライフサイクル中、PVCまたはPVに対して追加の操作を実行しません。PVが削除されてもストレージボリュームは削除されず、ボリュームのクローンやボリュームのサイズ変更などのその他の処理も無視されます。
++
+
+TIP: このオプションは、コンテナ化されたワークロードに Kubernetes を使用するが、 Kubernetes 以外でストレージボリュームのライフサイクルを管理する場合に便利です。
+
+* PVC と PV にアノテーションが追加されます。このアノテーションは、ボリュームがインポートされたこと、および PVC と PV が管理されていることを示す二重の目的を果たします。このアノテーションは変更または削除しないでください。
+
+
+
+
+== ボリュームをインポートします
+
+を使用してボリュームをインポートできます `tridentctl import`。
+
+.手順
+. PVCの作成に使用するPersistent Volume Claim（PVC；永続的ボリューム要求）ファイル（など）を作成します `pvc.yaml`。PVCファイルには、、 `namespace`、 `accessModes`および `storageClassName`が含まれている必要があります `name`。必要に応じて、PVC定義でを指定できます `unixPermissions`。
++
+最小仕様の例を次に示します。
+
++
+[source, yaml]
+----
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: my_claim
+  namespace: my_namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: my_storage_class
+----
++
+
+WARNING: PV名やボリュームサイズなどの追加のパラメータは指定しないでください。これにより原因、インポートコマンドが失敗する可能性があります。
+
+. コマンドを使用して `tridentctl import`、ボリュームを含むTridentバックエンドの名前と、ストレージ上のボリュームを一意に識別する名前（ONTAP FlexVol、Element Volume、Cloud Volumes Serviceパスなど）を指定します。 `-f`PVCファイルへのパスを指定するには、引数が必要です。
++
+[listing]
+----
+tridentctl import volume <backendName> <volumeName> -f <path-to-pvc-file>
+----
+
+
+
+
+== 例
+
+サポートされているドライバについて、次のボリュームインポートの例を確認してください。
+
+
+
+=== ONTAP NASおよびONTAP NAS FlexGroup
+
+Tridentは、ドライバと `ontap-nas-flexgroup`ドライバを使用したボリュームインポートをサポートしてい `ontap-nas`ます
+
+[NOTE]
+====
+*  `ontap-nas-economy`ドライバはqtreeをインポートおよび管理できません。
+*  `ontap-nas`ドライバと `ontap-nas-flexgroup`ドライバでは、ボリューム名の重複は許可されていません。
+
+
+====
+ドライバを使用して作成される各ボリューム `ontap-nas`は、ONTAPクラスタ上のFlexVol volumeになります。ドライバを使用したFlexVolボリュームのインポート `ontap-nas`も同様に機能します。ONTAPクラスタにすでに存在するFlexVolボリュームは、PVCとしてインポートできます `ontap-nas`。同様に、FlexGroupボリュームはPVCとしてインポートできます `ontap-nas-flexgroup`。
+
+.ONTAP NASの例
+次の例は、管理対象ボリュームと管理対象外ボリュームのインポートを示しています。
+
+[role="tabbed-block"]
+====
+.管理対象ボリューム
+--
+次の例は、という名前のバックエンドにある `ontap_nas`という名前のボリュームをインポートし `managed_volume`ます。
+
+[listing]
+----
+tridentctl import volume ontap_nas managed_volume -f <path-to-pvc-file>
+
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-bf5ad463-afbb-11e9-8d9f-5254004dfdb7 | 1.0 GiB | standard      | file     | c5a6f6a4-b052-423b-80d4-8fb491a14a22 | online | true    |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+----
+--
+.管理対象外のボリューム
+--
+引数を使用した場合 `--no-manage`、Tridentはボリュームの名前を変更しません。
+
+次に、バックエンドで `ontap_nas`をインポートする例を示し `unmanaged_volume`ます。
+
+[listing]
+----
+tridentctl import volume nas_blog unmanaged_volume -f <path-to-pvc-file> --no-manage
+
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-df07d542-afbc-11e9-8d9f-5254004dfdb7 | 1.0 GiB | standard      | file     | c5a6f6a4-b052-423b-80d4-8fb491a14a22 | online | false   |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+----
+--
+====
+
+
+=== ONTAP SAN
+
+Tridentは、ドライバと `ontap-san-economy`ドライバを使用したボリュームインポートをサポートしてい `ontap-san`ます
+
+Tridentでは、単一のLUNを含むONTAP SAN FlexVolボリュームをインポートできます。これは、ドライバと一致してい `ontap-san`ます。ドライバは、PVCごとにFlexVol volumeを作成し、FlexVol volume内にLUNを作成します。TridentはFlexVol volumeをインポートし、PVC定義に関連付けます。
+
+.ONTAP SANの例
+次の例は、管理対象ボリュームと管理対象外ボリュームのインポートを示しています。
+
+[role="tabbed-block"]
+====
+.管理対象ボリューム
+--
+管理対象ボリュームの場合、TridentはFlexVol volumeの名前を形式に、FlexVol volume内のLUNの名前をに `lun0`変更 `pvc-<uuid>`します。
+
+次に、バックエンドにあるFlexVol volume `ontap_san_default`をインポートする例を示し `ontap-san-managed`ます。
+
+[listing]
+----
+tridentctl import volume ontapsan_san_default ontap-san-managed -f pvc-basic-import.yaml -n trident -d
+
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE  | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-d6ee4f54-4e40-4454-92fd-d00fc228d74a | 20 MiB | basic         | block    | cd394786-ddd5-4470-adc3-10c5ce4ca757 | online | true    |
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+----
+--
+.管理対象外のボリューム
+--
+次に、バックエンドで `ontap_san`をインポートする例を示し `unmanaged_example_volume`ます。
+
+[listing]
+----
+tridentctl import volume -n trident san_blog unmanaged_example_volume -f pvc-import.yaml --no-manage
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-1fc999c9-ce8c-459c-82e4-ed4380a4b228 | 1.0 GiB | san-blog      | block    | e3275890-7d80-4af6-90cc-c7a0759f555a | online | false   |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+----
+[WARNING]
+====
+次の例に示すように、KubernetesノードのIQNとIQNを共有するigroupにLUNをマッピングすると、というエラーが表示されます。 `LUN already mapped to initiator(s) in this group`ボリュームをインポートするには、イニシエータを削除するか、LUNのマッピングを解除する必要があります。
+
+image:./san-import-igroup.png["iqnおよびクラスタiqnにマッピングされたLUNのイメージ。"]
+
+====
+--
+====
+
+
+=== 要素
+
+Tridentは、NetApp Elementソフトウェアとドライバを使用したNetApp HCIボリュームインポートをサポートしています `solidfire-san`。
+
+
+NOTE: Element ドライバではボリューム名の重複がサポートされます。ただし、ボリューム名が重複している場合、Tridentはエラーを返します。回避策としてボリュームをクローニングし、一意のボリューム名を指定して、クローンボリュームをインポートします。
+
+.要素の例
+次の例は、バックエンドにボリュームを `element_default`インポートし `element-managed`ます。
+
+[listing]
+----
+tridentctl import volume element_default element-managed -f pvc-basic-import.yaml -n trident -d
+
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE  | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-970ce1ca-2096-4ecd-8545-ac7edc24a8fe | 10 GiB | basic-element | block    | d3ba047a-ea0b-43f9-9c42-e38e58301c49 | online | true    |
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+----
+
+
+=== Google Cloud Platform
+
+Tridentはドライバを使用したボリュームインポートをサポートしてい `gcp-cvs`ます。
+
+
+NOTE: NetApp Cloud Volumes Serviceから作成されたボリュームをGoogle Cloud Platformにインポートするには、ボリュームパスでボリュームを特定します。ボリュームパスは、ボリュームのエクスポートパスののに続く部分です `:/`。たとえば、エクスポートパスがの場合、 `10.0.0.1:/adroit-jolly-swift`ボリュームパスはになり `adroit-jolly-swift`ます。
+
+.Google Cloud Platformの例
+次の例は、ボリュームパスがの `adroit-jolly-swift`バックエンドにボリュームを `gcpcvs_YEppr`インポートし `gcp-cvs`ます。
+
+[listing]
+----
+tridentctl import volume gcpcvs_YEppr adroit-jolly-swift -f <path-to-pvc-file> -n trident
+
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE  | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-a46ccab7-44aa-4433-94b1-e47fc8c0fa55 | 93 GiB | gcp-storage   | file     | e1a6e65b-299e-4568-ad05-4f0a105c888f | online | true    |
++------------------------------------------+--------+---------------+----------+--------------------------------------+--------+---------+
+----
+
+
+=== Azure NetApp Files
+
+Tridentはドライバを使用したボリュームインポートをサポートしてい `azure-netapp-files`ます。
+
+
+NOTE: Azure NetApp Filesボリュームをインポートするには、ボリュームパスでボリュームを特定します。ボリュームパスは、ボリュームのエクスポートパスののに続く部分です `:/`。たとえば、マウントパスがの場合、 `10.0.0.2:/importvol1`ボリュームパスはになり `importvol1`ます。
+
+.Azure NetApp Filesの例
+次の例は、ボリュームパスを持つ `importvol1`バックエンドのボリューム `azurenetappfiles_40517`をインポートし `azure-netapp-files`ます。
+
+[listing]
+----
+tridentctl import volume azurenetappfiles_40517 importvol1 -f <path-to-pvc-file> -n trident
+
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+| pvc-0ee95d60-fd5c-448d-b505-b72901b3a4ab | 100 GiB | anf-storage   | file     | 1c01274f-d94b-44a3-98a3-04c953c9a51e | online | true    |
++------------------------------------------+---------+---------------+----------+--------------------------------------+--------+---------+
+----
+
+
+=== Google Cloud NetAppボリューム
+
+Tridentはドライバを使用したボリュームインポートをサポートしてい `google-cloud-netapp-volumes`ます。
+
+.Google Cloud NetApp Volumeの例
+次の例は、ボリュームと一緒に `testvoleasiaeast1`バックエンドにボリュームを `backend-tbc-gcnv1`インポートし `google-cloud-netapp-volumes`ます。
+
+[listing]
+----
+tridentctl import volume backend-tbc-gcnv1 "testvoleasiaeast1" -f < path-to-pvc> -n trident
+
++------------------------------------------+---------+----------------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS        | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+----------------------+----------+--------------------------------------+--------+---------+
+| pvc-a69cda19-218c-4ca9-a941-aea05dd13dc0 |  10 GiB | gcnv-nfs-sc-identity | file     | 8c18cdf1-0770-4bc0-bcc5-c6295fe6d837 | online | true    |
++------------------------------------------+---------+----------------------+----------+--------------------------------------+--------+---------+
+----
+次の例は、同じリージョンに2つのボリュームがある場合にボリュームをインポートし `google-cloud-netapp-volumes`ます。
+
+[listing]
+----
+tridentctl import volume backend-tbc-gcnv1 "projects/123456789100/locations/asia-east1-a/volumes/testvoleasiaeast1" -f <path-to-pvc> -n trident
+
++------------------------------------------+---------+----------------------+----------+--------------------------------------+--------+---------+
+|                   NAME                   |  SIZE   | STORAGE CLASS        | PROTOCOL |             BACKEND UUID             | STATE  | MANAGED |
++------------------------------------------+---------+----------------------+----------+--------------------------------------+--------+---------+
+| pvc-a69cda19-218c-4ca9-a941-aea05dd13dc0 |  10 GiB | gcnv-nfs-sc-identity | file     | 8c18cdf1-0770-4bc0-bcc5-c6295fe6d837 | online | true    |
++------------------------------------------+---------+----------------------+----------+--------------------------------------+--------+---------+
+----

@@ -1,0 +1,98 @@
+---
+section: trident-use
+title: Tridentを使用
+entries:
+- title: ワーカーノードを準備します
+  url: "/trident-use/worker-node-prep.html"
+- title: バックエンドの構成と管理
+  entries:
+  - title: 概要
+    url: "/trident-use/backends.html"
+  - title: Azure NetApp Files
+    entries:
+    - title: 概要
+      url: "/trident-use/anf.html"
+    - title: 設定を準備
+      url: "/trident-use/anf-prep.html"
+    - title: 設定オプションと例
+      url: "/trident-use/anf-examples.html"
+  - title: Google Cloud NetAppボリューム
+    entries:
+    - title: 概要
+      url: "/trident-use/gcnv.html"
+    - title: 設定を準備
+      url: "/trident-use/gcnv-prep.html"
+    - title: 設定オプションと例
+      url: "/trident-use/gcnv-examples.html"
+  - title: Cloud Volumes Service for Google Cloud
+    url: "/trident-use/gcp.html"
+  - title: NetApp HCI またはSolidFire
+    url: "/trident-use/element.html"
+  - title: ONTAP SANドライバ
+    entries:
+    - title: 概要
+      url: "/trident-use/ontap-san.html"
+    - title: 設定を準備
+      url: "/trident-use/ontap-san-prep.html"
+    - title: 設定オプションと例
+      url: "/trident-use/ontap-san-examples.html"
+  - title: ONTAP NASドライバ
+    entries:
+    - title: 概要
+      url: "/trident-use/ontap-nas.html"
+    - title: 設定を準備
+      url: "/trident-use/ontap-nas-prep.html"
+    - title: 設定オプションと例
+      url: "/trident-use/ontap-nas-examples.html"
+  - title: Amazon FSx for NetApp ONTAP
+    entries:
+    - title: 概要
+      url: "/trident-use/trident-fsx.html"
+    - title: IAMロールとAWSシークレットを作成する
+      url: "/trident-use/trident-fsx-iam-role.html"
+    - title: Trident をインストール
+      url: "/trident-use/trident-fsx-install-trident.html"
+    - title: ストレージバックエンドの設定
+      url: "/trident-use/trident-fsx-storage-backend.html"
+    - title: ストレージクラスとPVCを設定
+      url: "/trident-use/trident-fsx-storageclass-pvc.html"
+    - title: サンプルアプリケーションのデプロイ
+      url: "/trident-use/trident-fsx-deploy-sample.html"
+    - title: EKSクラスタでのTrident EKSアドオンの設定
+      url: "/trident-use/trident-aws-addon.html"
+  - title: kubectl を使用してバックエンドを作成します
+    url: "/trident-use/backend-kubectl.html"
+  - title: バックエンドの管理
+    entries:
+    - title: kubectlでバックエンドを管理
+      url: "/trident-use/backend_ops_kubectl.html"
+    - title: tridentctlによるバックエンドの管理
+      url: "/trident-use/backend_ops_tridentctl.html"
+    - title: バックエンド管理オプション間を移動します
+      url: "/trident-use/backend_options.html"
+- title: ストレージクラスの作成と管理
+  entries:
+  - title: ストレージクラスを作成する。
+    url: "/trident-use/create-stor-class.html"
+  - title: ストレージクラスを管理する
+    url: "/trident-use/manage-stor-class.html"
+- title: ボリュームのプロビジョニングと管理
+  entries:
+  - title: ボリュームをプロビジョニングする
+    url: "/trident-use/vol-provision.html"
+  - title: ボリュームを展開します
+    url: "/trident-use/vol-expansion.html"
+  - title: ボリュームをインポート
+    url: "/trident-use/vol-import.html"
+  - title: ボリューム名をカスタマイズ
+    url: "/trident-use/vol-custom-name.html"
+  - title: ネームスペース間でNFSボリュームを共有します
+    url: "/trident-use/volume-share.html"
+  - title: ネームスペース全体でボリュームをクローニング
+    url: "/trident-use/vol-clone-cross-namespace.html"
+  - title: SnapMirrorによるボリュームのレプリケート
+    url: "/trident-use/vol-volume-replicate.html"
+  - title: CSI トポロジを使用します
+    url: "/trident-use/csi-topology.html"
+  - title: スナップショットの使用
+    url: "/trident-use/vol-snapshots.html"

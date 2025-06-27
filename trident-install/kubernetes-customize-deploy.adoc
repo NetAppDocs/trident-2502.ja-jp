@@ -1,0 +1,291 @@
+---
+sidebar: sidebar 
+permalink: trident-get-started/kubernetes-customize-deploy.html 
+keywords: deploy, trident, methods, operator, tridentctl, helm, attributes, customize, tridentorchestrator, smb, windows 
+summary: 'Trident演算子を使用すると、仕様内の属性を使用してTridentのインストール方法をカスタマイズでき `TridentOrchestrator`ます。' 
+---
+= Tridentオペレータのインストールをカスタマイズ
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Trident演算子を使用すると、仕様の属性を使用してTridentのインストールをカスタマイズでき `TridentOrchestrator`ます。引数で許可される範囲を超えてインストールをカスタマイズする場合 `TridentOrchestrator`は、を使用してカスタムYAMLマニフェストを生成し、必要に応じて変更することを検討して `tridentctl`ください。
+
+
+
+== コントローラポッドとノードポッドについて
+
+Tridentは、単一のコントローラポッドと、クラスタ内の各ワーカーノード上のノードポッドとして動作します。Tridentボリュームをマウントする可能性があるホストでノードポッドが実行されている必要があります。
+
+Kuberneteslink:https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/["ノードセレクタ"^]を使用して、link:https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/["寛容さと汚れ"^]ポッドを特定のノードまたは優先ノードで実行するように制限します。「ControllerPlugin」とを使用して、 `NodePlugin`制約とオーバーライドを指定できます。
+
+* コントローラプラグインは、Snapshotやサイズ変更などのボリュームのプロビジョニングと管理を処理します。
+* ノードプラグインによって、ノードへのストレージの接続が処理されます。
+
+
+
+
+== 設定オプション
+
+
+WARNING: `spec.namespace`は、Tridentがインストールされているネームスペースを示すためににに指定されてい `TridentOrchestrator`ます。このパラメータ*は、Tridentのインストール後は更新できません*。これを実行しようとすると、 `TridentOrchestrator`ステータスがに変わり `Failed`ます。Tridentをネームスペース間で移行することは想定されていません。
+
+このテーブルは、属性の詳細を示し `TridentOrchestrator`ます。
+
+[cols="1,2,1"]
+|===
+| パラメータ | 製品説明 | デフォルト 
+
+
+| `namespace` | Tridentをインストールするネームスペース | `"default"` 
+
+
+| `debug` | Tridentのデバッグを有効にする | `false` 
+
+
+| `enableForceDetach` | `ontap-san`、 `ontap-san-economy`、 `ontap-nas`、および `ontap-nas-economy`のみ。KubernetesのNon-Graceful Node Shutdown（NGN）と連携して、ノードに障害が発生した場合に、マウントされたボリュームを含むワークロードを新しいノードに安全に移行する機能をクラスタ管理者に提供します。 | `false` 
+
+
+| `windows` | をに設定する `true`と、Windowsワーカーノードへのインストールが有効になります。 | `false` 
+
+
+| `cloudProvider`  a| 
+AKSクラスタで管理IDまたはクラウドIDを使用する場合はに設定します `"Azure"`。EKSクラスタでクラウドIDを使用する場合は、に設定され `"AWS"`ます。GKEクラスタでクラウドIDを使用する場合は、に設定します `"GCP"`。
+| `""` 
+
+
+| `cloudIdentity`  a| 
+AKSクラスタでクラウドIDを使用する場合は、ワークロードID（「azure.workload.identity/client-id：xxxxxxxxxx-xxxx-xxxxxxx」）に設定します。EKSクラスタでクラウドIDを使用する場合は、AWS IAMロール（「eks.amazonaws.com/role-arn: arn：aws：iam：：123456：role / Trident -role」）に設定されます。GKEクラスタでクラウドIDを使用する場合は、クラウドID（「IAM.GKE.IO/gcp-service-account: xxxx@mygcpproject.iam.gserviceaccount.com」）に設定します。
+| `""` 
+
+
+| `IPv6` | IPv6経由のTridentのインストール | 正しくない 
+
+
+| `k8sTimeout` | Kubernetes 処理のタイムアウト | `30sec` 
+
+
+| `silenceAutosupport` | AutoSupport バンドルをネットアップに自動的に送信しない | `false` 
+
+
+| `autosupportImage` | AutoSupport テレメトリのコンテナイメージ | `"netapp/trident-autosupport:25.02"` 
+
+
+| `autosupportProxy` | AutoSupport テレメトリを送信するプロキシのアドレス / ポート | `"http://proxy.example.com:8888"` 
+
+
+| `uninstall` | Tridentのアンインストールに使用するフラグ | `false` 
+
+
+| `logFormat` | 使用するTridentログ形式[text、json] | `"text"` 
+
+
+| `tridentImage` | インストールするTridentイメージ | `"netapp/trident:25.02"` 
+
+
+| `imageRegistry` | 内部レジストリへのパス（形式）
+`<registry FQDN>[:port][/subpath]` | `"registry.k8s.io"` 
+
+
+| `kubeletDir` | ホスト上の kubelet ディレクトリへのパス | `"/var/lib/kubelet"` 
+
+
+| `wipeout` | Tridentを完全に削除するために削除するリソースのリスト |  
+
+
+| `imagePullSecrets` | 内部レジストリからイメージをプルするシークレット |  
+
+
+| `imagePullPolicy` | Tridentオペレータのイメージプルポリシーを設定します。有効な値は次のとおりです。常に画像をプルします。
+`Always`
+`IfNotPresent`ノードにイメージが存在しない場合にのみ取得します。
+`Never`画像を引っ張らないようにしました | `IfNotPresent` 
+
+
+| `controllerPluginNodeSelector` | ポッド用の追加のノードセレクタ。の形式はと同じ `pod.spec.nodeSelector`です。 | デフォルトはありません。オプションです 
+
+
+| `controllerPluginTolerations` | ポッドに対するKubernetesの許容範囲を上書きします。はと同じ形式 `pod.spec.Tolerations`です。 | デフォルトはありません。オプションです 
+
+
+| `nodePluginNodeSelector` | ポッド用の追加のノードセレクタ。の形式はと同じ `pod.spec.nodeSelector`です。 | デフォルトはありません。オプションです 
+
+
+| `nodePluginTolerations` | ポッドに対するKubernetesの許容範囲を上書きします。はと同じ形式 `pod.spec.Tolerations`です。 | デフォルトはありません。オプションです 
+
+
+| `nodePrep` | 指定したデータストレージプロトコルを使用してボリュームを管理できるように、TridentでKubernetesクラスタのノードを準備できるようにします。*現在 `iscsi`サポートされている値は、のみです。* |  
+
+
+| `enableAutoBackendConfig` | 自動バックエンド構成を有効にします。これにより、入力パラメータに基づいてバックエンドとストレージクラスがシームレスに作成されます。 | デフォルトはありません。オプションです 
+|===
+
+NOTE: ポッドパラメータのフォーマットの詳細については、を参照してくださいlink:https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/["ポッドをノードに割り当てます"^]。
+
+
+
+=== フォースデタッチの詳細
+
+[強制切り離し（Force detach）]は、、 `ontap-san-economy`、 `onatp-nas`、 `onatp-nas-economy`で `ontap-san`のみ使用できます。強制接続解除を有効にする前に、Kubernetesクラスタで非グレースフルノードシャットダウン（NGN）を有効にする必要があります。NGNはKubernetes 1.28以降ではデフォルトで有効になっています。詳細については、を参照してください link:https://kubernetes.io/docs/concepts/cluster-administration/node-shutdown/#non-graceful-node-shutdown["Kubernetes：正常なノードシャットダウンではありません"^]。
+
+
+NOTE: ドライバまたは `ontap-nas-economy`ドライバを使用する場合 `ontap-nas`は、管理対象のエクスポートポリシーを使用してtaintが適用されたKubernetesノードからのアクセスをTridentが制限できるように、バックエンド構成のパラメータをに `true`設定する必要 `autoExportPolicy`があります。
+
+
+WARNING: TridentはKubernetes NGNに依存しているため、許容できないすべてのワークロードのスケジュールを再設定するまで、正常でないノードからテイントを削除しないで `out-of-service`ください。汚染を無謀に適用または削除すると、バックエンドのデータ保護が危険にさらされる可能性があります。
+
+Kubernetesクラスタ管理者がtaintをノードに適用し、 `enableForceDetach`をに設定する `true`と `node.kubernetes.io/out-of-service=nodeshutdown:NoExecute`、Tridentはノードのステータスを確認し、次の処理を行います。
+
+. そのノードにマウントされたボリュームのバックエンドI/Oアクセスを停止します。
+. Tridentノードオブジェクトを（新しいパブリケーションに対しては安全ではない）としてマークします `dirty`。
++
+
+NOTE: Tridentコントローラは、Tridentノードポッドによって（とマークされた後で）ノードが再修飾されるまで、新しいパブリッシュボリューム要求を拒否し `dirty`ます。マウントされたPVCを使用してスケジュールされたワークロード（クラスタノードが正常で準備が完了したあとも）は、Tridentがそのノードを検証できるようになるまで受け入れられません `clean`（新しいパブリケーションに対して安全）。
+
+
+
+ノードの健常性が回復してtaintが削除されると、Tridentは次の処理を実行します。
+
+. ノード上の古い公開パスを特定してクリーンアップします。
+. ノードが状態（アウトオブサービス状態が削除され、ノードが `Ready`状態）で、古い公開パスがすべてクリーンである場合、 `cleanable`Tridentはノードをとして再登録し、新しい公開ボリュームをそのノードに許可します `clean`。
+
+
+
+
+== 構成例
+
+を定義してインストールをカスタマイズするときに、 `TridentOrchestrator`の属性を使用できます<<設定オプション>>。
+
+.基本的なカスタム設定
+[%collapsible]
+====
+この例は、コマンドの実行後に作成され `cat deploy/crds/tridentorchestrator_cr_imagepullsecrets.yaml`、基本的なカスタムインストールを示しています。
+
+[source, yaml]
+----
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+spec:
+  debug: true
+  namespace: trident
+  imagePullSecrets:
+  - thisisasecret
+----
+====
+.ノードセレクタ
+[%collapsible]
+====
+この例では、ノードセレクタを使用してTridentをインストールします。
+
+[source, yaml]
+----
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+spec:
+  debug: true
+  namespace: trident
+  controllerPluginNodeSelector:
+    nodetype: master
+  nodePluginNodeSelector:
+    storage: netapp
+----
+====
+.Windowsワーカーノード
+[%collapsible]
+====
+この例は、コマンドの実行後に作成され `cat deploy/crds/tridentorchestrator_cr.yaml`、WindowsワーカーノードにTridentをインストールします。
+
+[source, yaml]
+----
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+spec:
+  debug: true
+  namespace: trident
+  windows: true
+----
+====
+.AKSクラスタ上の管理対象ID
+[%collapsible]
+====
+この例では、AKSクラスタで管理対象IDを有効にするためにTridentをインストールします。
+
+[source, yaml]
+----
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+spec:
+  debug: true
+  namespace: trident
+  cloudProvider: "Azure"
+----
+====
+.AKSクラスタ上のクラウドID
+[%collapsible]
+====
+この例では、AKSクラスタ上のクラウドIDで使用するTridentをインストールします。
+
+[source, yaml]
+----
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+spec:
+  debug: true
+  namespace: trident
+  cloudProvider: "Azure"
+  cloudIdentity: 'azure.workload.identity/client-id: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx'
+
+----
+====
+.EKSクラスタ上のクラウドID
+[%collapsible]
+====
+この例では、AKSクラスタ上のクラウドIDで使用するTridentをインストールします。
+
+[source, yaml]
+----
+apiVersion: trident.netapp.io/v1
+kind: TridentOrchestrator
+metadata:
+  name: trident
+spec:
+  debug: true
+  namespace: trident
+  cloudProvider: "AWS"
+  cloudIdentity: "'eks.amazonaws.com/role-arn: arn:aws:iam::123456:role/trident-role'"
+----
+====
+.GKEのクラウドID
+[%collapsible]
+====
+この例では、GKEクラスタにクラウドIDで使用するTridentをインストールします。
+
+[source, yaml]
+----
+apiVersion: trident.netapp.io/v1
+kind: TridentBackendConfig
+metadata:
+  name: backend-tbc-gcp-gcnv
+spec:
+  version: 1
+  storageDriverName: google-cloud-netapp-volumes
+  projectNumber: '012345678901'
+  network: gcnv-network
+  location: us-west2
+  serviceLevel: Premium
+  storagePool: pool-premium1
+----
+====

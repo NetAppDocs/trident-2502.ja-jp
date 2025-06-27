@@ -1,0 +1,71 @@
+---
+sidebar: sidebar 
+permalink: trident-use/trident-fsx-deploy-sample.html 
+keywords: map backends, storage classes, trident backend, ontap-nas, ontap-nas-economy, ontap-nas-flexgroups, options, storageclasses, fsx 
+summary: Amazon FSX for ONTAP のバックエンド構成オプションについて説明します。ここでは、バックエンドの設定例を示します。 
+---
+= サンプルアプリケーションのデプロイ
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+ストレージクラスとPVCが作成されたら、そのPVをポッドにマウントできます。ここでは、PVをポッドに接続するためのコマンドと設定例を示します。
+
+.手順
+. ボリュームをポッドにマウントします。
++
+[source, console]
+----
+kubectl create -f pv-pod.yaml
+----
++
+次に、PVCをポッドに接続するための基本的な設定例を示します。*基本設定*：
+
++
+[source, yaml]
+----
+kind: Pod
+apiVersion: v1
+metadata:
+  name: pv-pod
+spec:
+  volumes:
+    - name: pv-storage
+      persistentVolumeClaim:
+       claimName: basic
+  containers:
+    - name: pv-container
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+      volumeMounts:
+        - mountPath: "/my/mount/path"
+          name: pv-storage
+----
++
+
+NOTE: 進捗状況はを使用して監視でき `kubectl get pod --watch`ます。
+
+. ボリュームがにマウントされていることを確認します `/my/mount/path`。
++
+[source, console]
+----
+kubectl exec -it pv-pod -- df -h /my/mount/path
+----
+
+
+[listing]
+----
+Filesystem                                                        Size  Used  Avail Use%  Mounted on
+192.168.188.78:/trident_pvc_ae45ed05_3ace_4e7c_9080_d2a83ae03d06  1.1G  320K  1.0G   1%   /my/mount/path
+----
+ポッドを削除できるようになりました。Podアプリケーションは存在しなくなりますが、ボリュームは残ります。
+
+[source, console]
+----
+kubectl delete pod pv-pod
+----

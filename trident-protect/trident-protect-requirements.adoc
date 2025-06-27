@@ -1,0 +1,156 @@
+---
+sidebar: sidebar 
+permalink: trident-protect/trident-protect-requirements.html 
+keywords: trident protect, application, cluster, snapmirror replication, ontap, configuration 
+summary: まず、運用環境、アプリケーションクラスタ、アプリケーション、ライセンスの準備状況を確認します。Trident保護を導入して運用するには、環境がこれらの要件を満たしていることを確認してください。 
+---
+= Trident保護の要件
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ../media/
+
+
+[role="lead"]
+まず、運用環境、アプリケーションクラスタ、アプリケーション、ライセンスの準備状況を確認します。Trident保護を導入して運用するには、環境がこれらの要件を満たしていることを確認してください。
+
+
+
+== TridentによるKubernetesクラスタ互換性の保護
+
+Trident Protectは、次のようなフルマネージドおよび自己管理型の幅広いKubernetes製品と互換性があります。
+
+* Amazon Elastic Kubernetes Service（EKS）
+* Google Kubernetes Engine （ GKE ）
+* Microsoft Azure Kubernetes Service （ AKS ）
+* Red Hat OpenShift のサービスです
+* SUSE Rancher
+* VMware Tanzuポートフォリオ
+* アップストリームKubernetes
+
+
+
+NOTE: Trident保護をインストールするクラスタに、実行中のSnapshotコントローラと関連するCRDが設定されていることを確認します。スナップショットコントローラを取り付けるには、を参照してください https://docs.netapp.com/us-en/trident/trident-use/vol-snapshots.html#deploy-a-volume-snapshot-controller["以下の手順を参照して"]。
+
+
+
+== Tridentはストレージバックエンドの互換性を保護
+
+Trident保護は、次のストレージバックエンドをサポートします。
+
+* Amazon FSx for NetApp ONTAP
+* Cloud Volumes ONTAP
+* ONTAPストレエシアレイ
+* Google Cloud NetAppボリューム
+* Azure NetApp Files
+
+
+ストレージバックエンドが次の要件を満たしていることを確認します。
+
+* クラスタに接続されているNetAppストレージがAstra Trident 24.02以降を使用していることを確認します（Trident 24.10を推奨）。
++
+** Astra Tridentが24.06.1より前のバージョンで、NetApp SnapMirrorディザスタリカバリ機能を使用する場合は、Astra Control Provisionerを手動で有効にする必要があります。
+
+
+* 最新のAstra Control Provisionerがインストールされていることを確認します（Astra Trident 24.06.1以降ではデフォルトでインストールおよび有効化されています）。
+* NetApp ONTAPストレージバックエンドがあることを確認します。
+* バックアップを格納するオブジェクトストレージバケットを設定しておきます。
+* アプリケーションまたはアプリケーションデータの管理処理に使用するアプリケーションネームスペースを作成します。Trident保護では、これらのネームスペースは作成されません。カスタムリソースに存在しないネームスペースを指定すると、処理は失敗します。
+
+
+
+
+== NASエコノミーボリュームの要件
+
+Trident Protectは、NASエコノミーボリュームへのバックアップおよびリストア処理をサポートします。Snapshot、クローン、NASエコノミーボリュームへのSnapMirrorレプリケーションは、現在サポートされていません。Trident保護で使用するNASエコノミーボリュームごとに、スナップショットディレクトリを有効にする必要があります。
+
+[NOTE]
+====
+一部のアプリケーションは、Snapshotディレクトリを使用するボリュームと互換性がありません。これらのアプリケーションでは、ONTAPストレージシステムで次のコマンドを実行して、snapshotディレクトリを非表示にする必要があります。
+
+[source, console]
+----
+nfs modify -vserver <svm> -v3-hide-snapshot enabled
+----
+====
+snapshotディレクトリを有効にするには、NASエコノミーボリュームごとに次のコマンドを実行し、を変更するボリュームのUUIDに置き換え `<volume-UUID>`ます。
+
+[source, console]
+----
+tridentctl update volume <volume-UUID> --snapshot-dir=true --pool-level=true -n trident
+----
+
+NOTE: 新しいボリュームに対してSnapshotディレクトリをデフォルトで有効にするには、Tridentバックエンド構成オプションをに `true`設定し `snapshotDir`ます。既存のボリュームには影響しません。
+
+
+
+== KubeVirt VMによるデータ保護
+
+Trident protect 24.10および24.10.1以降では、KubeVirt VM上で実行されているアプリケーションを保護する場合の動作が異なります。どちらのバージョンでも、データ保護処理中のファイルシステムのフリーズおよびフリーズ解除を有効または無効にすることができます。
+
+.Trident保護24.10
+Trident protect 24.10では、データ保護処理中にKubeVirt VMファイルシステムの一貫した状態が自動的に保証されません。Trident protect 24.10を使用してKubeVirt VMデータを保護する場合は、データ保護処理の前にファイルシステムのフリーズ/フリーズ解除機能を手動で有効にする必要があります。これにより、ファイルシステムが一貫した状態であることが保証されます。
+
+データ保護処理中のVMファイルシステムのフリーズおよびフリーズ解除を管理するようにTrident protect 24.10を設定するには、link:https://docs.openshift.com/container-platform/4.16/virt/install/installing-virt.html["仮想化の設定"^]次のコマンドを使用します。
+
+[source, console]
+----
+kubectl set env deployment/trident-protect-controller-manager NEPTUNE_VM_FREEZE=true -n trident-protect
+----
+.Trident protect 24.10.1以降
+Trident protect 24.10.1以降では、Trident protectでは、データ保護処理中にKubeVirtファイルシステムが自動的にフリーズおよびフリーズ解除されます。必要に応じて、次のコマンドを使用してこの自動動作を無効にできます。
+
+[source, console]
+----
+kubectl set env deployment/trident-protect-controller-manager NEPTUNE_VM_FREEZE=false -n trident-protect
+----
+
+
+== SnapMirrorレプリケーションの要件
+
+NetApp SnapMirrorレプリケーションは、次のONTAPソリューションのTrident protectで使用できます。
+
+* オンプレミスのNetApp FAS、AFF、ASAクラスタ
+* NetApp ONTAP Select の略
+* NetApp Cloud Volumes ONTAP の略
+* Amazon FSx for NetApp ONTAP
+
+
+
+
+=== SnapMirrorレプリケーション用のONTAPクラスタの要件
+
+SnapMirrorレプリケーションを使用する場合は、ONTAPクラスタが次の要件を満たしていることを確認します。
+
+* * Astra Control ProvisionerまたはTrident *：Astra Control ProvisionerまたはTridentが、ONTAPをバックエンドとして利用するソースとデスティネーションの両方のKubernetesクラスタに存在している必要があります。Trident保護では、次のドライバに基づくストレージクラスを使用したNetApp SnapMirrorテクノロジによるレプリケーションがサポートされます。
++
+** `ontap-nas`
+** `ontap-san`
+
+
+* *ライセンス*：Data Protection Bundleを使用するONTAP SnapMirror非同期ライセンスが、ソースとデスティネーションの両方のONTAPクラスタで有効になっている必要があります。詳細については、を参照してください https://docs.netapp.com/us-en/ontap/data-protection/snapmirror-licensing-concept.html["ONTAP のSnapMirrorライセンスの概要"^] 。
+
+
+
+
+=== SnapMirrorレプリケーションのピアリングに関する考慮事項
+
+ストレージバックエンドピアリングを使用する場合は、環境が次の要件を満たしていることを確認してください。
+
+* *クラスタとSVM *：ONTAPストレージバックエンドにピア関係が設定されている必要があります。詳細については、を参照してください https://docs.netapp.com/us-en/ontap/peering/index.html["クラスタと SVM のピアリングの概要"^] 。
++
+
+NOTE: 2つのONTAPクラスタ間のレプリケーション関係で使用されるSVM名が一意であることを確認してください。
+
+* * Astra Control ProvisionerまたはTridentとSVM *：ピア関係にあるリモートSVMは、デスティネーションクラスタのAstra Control ProvisionerまたはTridentで使用できる必要があります。
+* *管理バックエンド*：レプリケーション関係を作成するには、Trident保護でONTAPストレージバックエンドを追加および管理する必要があります。
+* * NVMe over TCP *：Trident保護では、NVMe over TCPプロトコルを使用するストレージバックエンドのNetApp SnapMirrorレプリケーションはサポートされません。
+
+
+
+
+=== SnapMirrorレプリケーション用のTrident / ONTAPの設定
+
+Trident保護を使用するには、ソースとデスティネーションの両方のクラスタのレプリケーションをサポートするストレージバックエンドを少なくとも1つ設定する必要があります。ソースクラスタとデスティネーションクラスタが同じである場合は、耐障害性を最大限に高めるために、デスティネーションアプリケーションでソースアプリケーションとは別のストレージバックエンドを使用する必要があります。

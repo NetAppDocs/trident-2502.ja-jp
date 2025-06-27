@@ -1,0 +1,448 @@
+---
+sidebar: sidebar 
+permalink: trident-use/gcp.html 
+keywords: trident backend, cloud volumes service for google cloud platform, google cloud platform, gcp, storage pool labels, storage pool, cvs, cvs-performance, service type, service level, cloud volumes service, cloud volumes, drivers, access modes, rwo, rwx, rwp, rwop, file system 
+summary: 提供されている構成例を使用して、TridentインストールのバックエンドとしてCloud Volumes Service for Google Cloudを構成する方法を説明します。 
+---
+= Google Cloudバックエンド用にCloud Volumes Service を設定します
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+提供されている構成例を使用して、TridentインストールのバックエンドとしてNetApp Cloud Volumes Service for Google Cloudを構成する方法を説明します。
+
+
+
+== Google Cloudドライバの詳細
+
+Tridentは、クラスタと通信するためのドライバを提供します `gcp-cvs`。サポートされているアクセスモードは、_ReadWriteOnce_(RWO)、_ReadOnlyMany_(ROX)、_ReadWriteMany_(RWX)、_ReadWriteOncePod_(RWOP)です。
+
+[cols="1, 1, 1, 2, 2"]
+|===
+| ドライバ | プロトコル | ボリュームモード | サポートされているアクセスモード | サポートされるファイルシステム 
+
+
+| `gcp-cvs`  a| 
+NFS
+ a| 
+ファイルシステム
+ a| 
+RWO、ROX、RWX、RWOP
+ a| 
+`nfs`
+
+|===
+
+
+== TridentによるCloud Volumes Service for Google Cloudのサポートの詳細
+
+Tridentではlink:https://cloud.google.com/architecture/partners/netapp-cloud-volumes/service-types["サービスタイプ"^]、次の2つのいずれかにCloud Volumes Serviceボリュームを作成できます。
+
+* * CVS-Performance *：デフォルトのTridentサービスタイプ。パフォーマンスが最適化されたこのサービスタイプは、パフォーマンスを重視する本番環境のワークロードに最適です。CVS -パフォーマンスサービスタイプは、サイズが100GiB以上のボリュームをサポートするハードウェアオプションです。link:https://cloud.google.com/architecture/partners/netapp-cloud-volumes/service-levels#service_levels_for_the_cvs-performance_service_type["3つのサービスレベル"^]次のいずれかを選択できます。
++
+** `standard`
+** `premium`
+** `extreme`
+
+
+* * CVS *：CVSサービスタイプは、中程度のパフォーマンスレベルに制限された高レベルの可用性を提供します。CVSサービスタイプは、ストレージプールを使用して1GiB未満のボリュームをサポートするソフトウェアオプションです。ストレージプールには最大50個のボリュームを含めることができ、すべてのボリュームでプールの容量とパフォーマンスを共有できます。link:https://cloud.google.com/architecture/partners/netapp-cloud-volumes/service-levels#service_levels_for_the_cvs_service_type["2つのサービスレベル"^]次のいずれかを選択できます。
++
+** `standardsw`
+** `zoneredundantstandardsw`
+
+
+
+
+.必要なもの
+バックエンドを設定して使用するには https://cloud.netapp.com/cloud-volumes-service-for-gcp?utm_source=NetAppTrident_ReadTheDocs&utm_campaign=Trident["Cloud Volumes Service for Google Cloud"^]、次のものが必要です。
+
+* NetApp Cloud Volumes Service で設定されたGoogle Cloudアカウント
+* Google Cloud アカウントのプロジェクト番号
+* ロールが割り当てられたGoogle Cloudサービスアカウント `netappcloudvolumes.admin`
+* Cloud Volumes Service アカウントのAPIキーファイル
+
+
+
+
+== バックエンド構成オプション
+
+各バックエンドは、 1 つの Google Cloud リージョンにボリュームをプロビジョニングします。他のリージョンにボリュームを作成する場合は、バックエンドを追加で定義します。
+
+[cols="1, 2, 1"]
+|===
+| パラメータ | 製品説明 | デフォルト 
+
+
+| `version` |  | 常に 1 
+
+
+| `storageDriverName` | ストレージドライバの名前 | "GCP-cvs" 
+
+
+| `backendName` | カスタム名またはストレージバックエンド | ドライバ名 + "_" + API キーの一部 
+
+
+| `storageClass` | CVSサービスタイプを指定するためのオプションのパラメータ。CVSサービスタイプを選択するために使用し `software`ます。それ以外の場合、TridentはサービスタイプがCVS-Performanceとみなされ(`hardware`ます）。 |  
+
+
+| `storagePools` | CVSサービスタイプのみ。ボリューム作成用のストレージプールを指定するオプションのパラメータ。 |  
+
+
+| `projectNumber` | Google Cloud アカウントのプロジェクト番号。この値は、Google Cloudポータルのホームページにあります。 |  
+
+
+| `hostProjectNumber` | 共有VPCネットワークを使用する場合は必須です。このシナリオでは、 `projectNumber`はサービスプロジェクト、 `hostProjectNumber`はホストプロジェクトです。 |  
+
+
+| `apiRegion` | TridentがCloud Volumes Serviceボリュームを作成するGoogle Cloudリージョン。リージョン間Kubernetesクラスタを作成する場合、で作成したボリュームは `apiRegion`、複数のGoogle Cloudリージョンのノードでスケジュールされているワークロードで使用できます。リージョン間トラフィックは追加コストを発生させます。 |  
+
+
+| `apiKey` | ロールが割り当てられたGoogle CloudサービスアカウントのAPIキー `netappcloudvolumes.admin` 。このレポートには、 Google Cloud サービスアカウントの秘密鍵ファイルの JSON 形式のコンテンツが含まれています（バックエンド構成ファイルにそのままコピーされます）。 |  
+
+
+| `proxyURL` | CVSアカウントへの接続にプロキシサーバが必要な場合は、プロキシURLを指定します。プロキシサーバには、 HTTP プロキシまたは HTTPS プロキシを使用できます。HTTPS プロキシの場合、プロキシサーバで自己署名証明書を使用するために証明書の検証はスキップされます。認証が有効になっているプロキシサーバはサポートされていません。 |  
+
+
+| `nfsMountOptions` | NFS マウントオプションのきめ細かな制御。 | "nfsvers=3 " 
+
+
+| `limitVolumeSize` | 要求されたボリュームサイズがこの値を超えている場合はプロビジョニングが失敗します。 | "" （デフォルトでは適用されません） 
+
+
+| `serviceLevel` | 新しいボリュームのCVS -パフォーマンスレベルまたはCVSサービスレベル。CVS-Performanceの値は `standard`、、 `premium`または `extreme`です。CVS値は `standardsw`または `zoneredundantstandardsw`です。 | CVS -パフォーマンスのデフォルトは「Standard」です。CVSのデフォルトは"standardsw"です。 
+
+
+| `network` | Cloud Volumes Service ボリュームに使用するGoogle Cloudネットワーク。 | デフォルト 
+
+
+| `debugTraceFlags` | トラブルシューティング時に使用するデバッグフラグ。例： `\{"api":false, "method":true}`トラブルシューティングを行って詳細なログダンプが必要な場合を除き、このオプションは使用しないでください。 | null 
+
+
+| `allowedTopologies` | リージョン間アクセスを有効にするには、のStorageClass定義 `allowedTopologies`にすべてのリージョンが含まれている必要があります。例：
+`- key: topology.kubernetes.io/region
+  values:
+  - us-east1
+  - europe-west1` |  
+|===
+
+
+== ボリュームプロビジョニングオプション
+
+デフォルトのボリュームプロビジョニングは、構成ファイルのセクションで制御できます `defaults`。
+
+[cols=",,"]
+|===
+| パラメータ | 製品説明 | デフォルト 
+
+
+| `exportRule` | 新しいボリュームのエクスポートルール。CIDR 表記の IPv4 アドレスまたは IPv4 サブネットの任意の組み合わせをカンマで区切って指定する必要があります。 | "0.0.0.0/0 " 
+
+
+| `snapshotDir` | ディレクトリへのアクセス `.snapshot` | いいえ 
+
+
+| `snapshotReserve` | Snapshot 用にリザーブされているボリュームの割合 | "" （ CVS のデフォルト値をそのまま使用） 
+
+
+| `size` | 新しいボリュームのサイズ。CVS -パフォーマンス最小値は100GiBです。CVS最小値は1GiBです。 | CVS -パフォーマンスサービスのタイプはデフォルトで「100GiB」です。CVSサービスのタイプではデフォルトが設定されませんが、1GiB以上が必要です。 
+|===
+
+
+== CVS -パフォーマンスサービスの種類の例
+
+次の例は、CVS -パフォーマンスサービスタイプの設定例を示しています。
+
+.例 1 ：最小限の構成
+[%collapsible]
+====
+これは、デフォルトの「標準」サービスレベルでデフォルトのCVSパフォーマンスサービスタイプを使用する最小バックエンド構成です。
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: gcp-cvs
+projectNumber: "012345678901"
+apiRegion: us-west2
+apiKey:
+  type: service_account
+  project_id: my-gcp-project
+  private_key_id: <id_value>
+  private_key: |
+    -----BEGIN PRIVATE KEY-----
+    <key_value>
+    -----END PRIVATE KEY-----
+  client_email: cloudvolumes-admin-sa@my-gcp-project.iam.gserviceaccount.com
+  client_id: "123456789012345678901"
+  auth_uri: https://accounts.google.com/o/oauth2/auth
+  token_uri: https://oauth2.googleapis.com/token
+  auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+  client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/cloudvolumes-admin-sa%40my-gcp-project.iam.gserviceaccount.com
+----
+====
+.例2：サービスレベルの設定
+[%collapsible]
+====
+この例は、サービスレベルやボリュームのデフォルトなど、バックエンド構成オプションを示しています。
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: gcp-cvs
+projectNumber: '012345678901'
+apiRegion: us-west2
+apiKey:
+  type: service_account
+  project_id: my-gcp-project
+  private_key_id: "<id_value>"
+  private_key: |
+    -----BEGIN PRIVATE KEY-----
+    <key_value>
+    -----END PRIVATE KEY-----
+  client_email: cloudvolumes-admin-sa@my-gcp-project.iam.gserviceaccount.com
+  client_id: '123456789012345678901'
+  auth_uri: https://accounts.google.com/o/oauth2/auth
+  token_uri: https://oauth2.googleapis.com/token
+  auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+  client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/cloudvolumes-admin-sa%40my-gcp-project.iam.gserviceaccount.com
+proxyURL: http://proxy-server-hostname/
+nfsMountOptions: vers=3,proto=tcp,timeo=600
+limitVolumeSize: 10Ti
+serviceLevel: premium
+defaults:
+  snapshotDir: 'true'
+  snapshotReserve: '5'
+  exportRule: 10.0.0.0/24,10.0.1.0/24,10.0.2.100
+  size: 5Ti
+----
+====
+.例3：仮想プールの構成
+[%collapsible]
+====
+この例では、を使用して、 `storage`仮想プールとを参照するを設定し `StorageClasses`ます。ストレージクラスの定義方法については、を参照して<<ストレージクラスの定義>>ください。
+
+ここでは、すべての仮想プールに特定のデフォルトが設定されます。これにより、が5%に設定され、が `exportRule`0.0.0.0/0に設定され `snapshotReserve`ます。仮想プールは、セクションで定義し `storage`ます。個 々 の仮想プールはそれぞれ独自に定義され `serviceLevel`、一部のプールはデフォルト値を上書きします。仮想プールラベルを使用して、および `protection`に基づいてプールを区別しました `performance`。
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: gcp-cvs
+projectNumber: '012345678901'
+apiRegion: us-west2
+apiKey:
+  type: service_account
+  project_id: my-gcp-project
+  private_key_id: "<id_value>"
+  private_key: |
+    -----BEGIN PRIVATE KEY-----
+    <key_value>
+    -----END PRIVATE KEY-----
+  client_email: cloudvolumes-admin-sa@my-gcp-project.iam.gserviceaccount.com
+  client_id: '123456789012345678901'
+  auth_uri: https://accounts.google.com/o/oauth2/auth
+  token_uri: https://oauth2.googleapis.com/token
+  auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+  client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/cloudvolumes-admin-sa%40my-gcp-project.iam.gserviceaccount.com
+nfsMountOptions: vers=3,proto=tcp,timeo=600
+defaults:
+  snapshotReserve: '5'
+  exportRule: 0.0.0.0/0
+labels:
+  cloud: gcp
+region: us-west2
+storage:
+- labels:
+    performance: extreme
+    protection: extra
+  serviceLevel: extreme
+  defaults:
+    snapshotDir: 'true'
+    snapshotReserve: '10'
+    exportRule: 10.0.0.0/24
+- labels:
+    performance: extreme
+    protection: standard
+  serviceLevel: extreme
+- labels:
+    performance: premium
+    protection: extra
+  serviceLevel: premium
+  defaults:
+    snapshotDir: 'true'
+    snapshotReserve: '10'
+- labels:
+    performance: premium
+    protection: standard
+  serviceLevel: premium
+- labels:
+    performance: standard
+  serviceLevel: standard
+
+----
+====
+
+
+=== ストレージクラスの定義
+
+次のStorageClass定義は、仮想プールの構成例に適用されます。を使用すると `parameters.selector`、ボリュームのホストに使用する仮想プールをStorageClassごとに指定できます。ボリュームには、選択したプールで定義された要素があります。
+
+.ストレージクラスの例
+[%collapsible]
+====
+[source, yaml]
+----
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cvs-extreme-extra-protection
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=extreme; protection=extra
+allowVolumeExpansion: true
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cvs-extreme-standard-protection
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=premium; protection=standard
+allowVolumeExpansion: true
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cvs-premium-extra-protection
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=premium; protection=extra
+allowVolumeExpansion: true
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cvs-premium
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=premium; protection=standard
+allowVolumeExpansion: true
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cvs-standard
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=standard
+allowVolumeExpansion: true
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: cvs-extra-protection
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: protection=extra
+allowVolumeExpansion: true
+
+----
+====
+* 最初のStorageClass(`cvs-extreme-extra-protection`）が最初の仮想プールにマッピングされます。スナップショット予約が 10% の非常に高いパフォーマンスを提供する唯一のプールです。
+* 最後のStorageClass(`cvs-extra-protection`）は、10%のスナップショットリザーブを提供するストレージプールを呼び出します。Tridentは、選択する仮想プールを決定し、スナップショット予約の要件を確実に満たします。
+
+
+
+
+== CVSサービスタイプの例
+
+次の例は、CVSサービスタイプの設定例を示しています。
+
+.例1：最小構成
+[%collapsible]
+====
+これは、CVSサービスタイプとデフォルトのサービスレベルを指定するために `standardsw`を使用する最小のバックエンド構成 `storageClass`です。
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: gcp-cvs
+projectNumber: '012345678901'
+storageClass: software
+apiRegion: us-east4
+apiKey:
+  type: service_account
+  project_id: my-gcp-project
+  private_key_id: "<id_value>"
+  private_key: |
+    -----BEGIN PRIVATE KEY-----
+    <key_value>
+    -----END PRIVATE KEY-----
+  client_email: cloudvolumes-admin-sa@my-gcp-project.iam.gserviceaccount.com
+  client_id: '123456789012345678901'
+  auth_uri: https://accounts.google.com/o/oauth2/auth
+  token_uri: https://oauth2.googleapis.com/token
+  auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+  client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/cloudvolumes-admin-sa%40my-gcp-project.iam.gserviceaccount.com
+serviceLevel: standardsw
+----
+====
+.例2：ストレージプールの構成
+[%collapsible]
+====
+このバックエンド構成の例では、を使用して `storagePools`ストレージプールを構成しています。
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: gcp-cvs
+backendName: gcp-std-so-with-pool
+projectNumber: '531265380079'
+apiRegion: europe-west1
+apiKey:
+  type: service_account
+  project_id: cloud-native-data
+  private_key_id: "<id_value>"
+  private_key: |-
+    -----BEGIN PRIVATE KEY-----
+    <key_value>
+    -----END PRIVATE KEY-----
+  client_email: cloudvolumes-admin-sa@cloud-native-data.iam.gserviceaccount.com
+  client_id: '107071413297115343396'
+  auth_uri: https://accounts.google.com/o/oauth2/auth
+  token_uri: https://oauth2.googleapis.com/token
+  auth_provider_x509_cert_url: https://www.googleapis.com/oauth2/v1/certs
+  client_x509_cert_url: https://www.googleapis.com/robot/v1/metadata/x509/cloudvolumes-admin-sa%40cloud-native-data.iam.gserviceaccount.com
+storageClass: software
+zone: europe-west1-b
+network: default
+storagePools:
+- 1bc7f380-3314-6005-45e9-c7dc8c2d7509
+serviceLevel: Standardsw
+
+----
+====
+
+
+== 次の手順
+
+バックエンド構成ファイルを作成したら、次のコマンドを実行します。
+
+[listing]
+----
+tridentctl create backend -f <backend-file>
+----
+バックエンドの作成に失敗した場合は、バックエンドの設定に何か問題があります。次のコマンドを実行すると、ログを表示して原因を特定できます。
+
+[listing]
+----
+tridentctl logs
+----
+構成ファイルで問題を特定して修正したら、 create コマンドを再度実行できます。

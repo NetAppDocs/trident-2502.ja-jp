@@ -1,0 +1,142 @@
+---
+sidebar: sidebar 
+permalink: trident-use/ontap-san.html 
+keywords: trident backend, ontap san, ontap-san, ontap-san-economy, fsx, drivers, access modes, rwo, rwx, rwp, rwop, file system 
+summary: ONTAP SAN ドライバを使用した ONTAP バックエンドの設定について説明します。 
+---
+= ONTAP SANドライバの概要
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+ONTAP および Cloud Volumes ONTAP の SAN ドライバを使用した ONTAP バックエンドの設定について説明します。
+
+
+
+== ONTAP SANドライバの詳細
+
+Tridentは、ONTAPクラスタと通信するための次のSANストレージドライバを提供します。サポートされているアクセスモードは、_ReadWriteOnce_(RWO)、_ReadOnlyMany_(ROX)、_ReadWriteMany_(RWX)、_ReadWriteOncePod_(RWOP)です。
+
+[cols="2, 1, 1, 2, 2"]
+|===
+| ドライバ | プロトコル | ボリュームモード | サポートされているアクセスモード | サポートされるファイルシステム 
+
+
+| `ontap-san`  a| 
+iSCSI SCSI over FC
+ a| 
+ブロック
+ a| 
+RWO、ROX、RWX、RWOP
+ a| 
+ファイルシステムなし。rawブロックデバイスです
+
+
+
+| `ontap-san`  a| 
+iSCSI SCSI over FC
+ a| 
+ファイルシステム
+ a| 
+RWO、RWOP
+
+ROXおよびRWXは、ファイルシステムボリュームモードでは使用できません。
+ a| 
+`xfs`、 `ext3`、 `ext4`
+
+
+
+| `ontap-san`  a| 
+NVMe / TCP
+
+を参照してください <<NVMe/TCPに関するその他の考慮事項>>。
+ a| 
+ブロック
+ a| 
+RWO、ROX、RWX、RWOP
+ a| 
+ファイルシステムなし。rawブロックデバイスです
+
+
+
+| `ontap-san`  a| 
+NVMe / TCP
+
+を参照してください <<NVMe/TCPに関するその他の考慮事項>>。
+ a| 
+ファイルシステム
+ a| 
+RWO、RWOP
+
+ROXおよびRWXは、ファイルシステムボリュームモードでは使用できません。
+ a| 
+`xfs`、 `ext3`、 `ext4`
+
+
+
+| `ontap-san-economy`  a| 
+iSCSI
+ a| 
+ブロック
+ a| 
+RWO、ROX、RWX、RWOP
+ a| 
+ファイルシステムなし。rawブロックデバイスです
+
+
+
+| `ontap-san-economy`  a| 
+iSCSI
+ a| 
+ファイルシステム
+ a| 
+RWO、RWOP
+
+ROXおよびRWXは、ファイルシステムボリュームモードでは使用できません。
+ a| 
+`xfs`、 `ext3`、 `ext4`
+
+|===
+[WARNING]
+====
+* 永続的ボリュームの使用数がよりも多くなると予想される場合にのみ使用します `ontap-san-economy`link:https://docs.netapp.com/us-en/ontap/volumes/storage-limits-reference.html["サポートされるONTAPの制限"^]。
+* 永続的ボリュームの使用数がよりも多いと予想され、 `ontap-san-economy`ドライバを使用できない場合にのみlink:https://docs.netapp.com/us-en/ontap/volumes/storage-limits-reference.html["サポートされるONTAPの制限"^]使用して `ontap-nas-economy`ください。
+* データ保護、ディザスタリカバリ、モビリティの必要性が予想される場合は使用しない `ontap-nas-economy`でください。
+* NetAppでは、ONTAP SANを除くすべてのONTAPドライバでFlexVol自動拡張を使用することは推奨されていません。回避策として、Tridentはスナップショット予約の使用をサポートし、それに応じてFlexVolボリュームを拡張します。
+
+
+====
+
+
+== ユーザ権限
+
+Tridentは、ONTAP管理者またはSVM管理者（通常はクラスタユーザ、 `vsadmin`SVMユーザ、または別の名前で同じロールのユーザを使用）として実行することを想定しています `admin`。Amazon FSx for NetApp ONTAP環境では、Tridentは、クラスタユーザまたは `vsadmin`SVMユーザを使用するONTAP管理者またはSVM管理者、または同じロールの別の名前のユーザとして実行される必要があります `fsxadmin`。この `fsxadmin`ユーザは、クラスタ管理者ユーザに代わる限定的なユーザです。
+
+
+NOTE: パラメータを使用する場合は `limitAggregateUsage`、クラスタ管理者の権限が必要です。TridentでAmazon FSx for NetApp ONTAPを使用している場合、 `limitAggregateUsage`パラメータはユーザアカウントと `fsxadmin`ユーザアカウントでは機能しません `vsadmin`。このパラメータを指定すると設定処理は失敗します。
+
+ONTAP内でTridentドライバが使用できる、より制限の厳しいロールを作成することは可能ですが、推奨しません。Trident の新リリースでは、多くの場合、考慮すべき API が追加で必要になるため、アップグレードが難しく、エラーも起こりやすくなります。
+
+
+
+== NVMe/TCPに関するその他の考慮事項
+
+Tridentは、次のドライバを使用してNon-Volatile Memory Express（NVMe）プロトコルをサポートします `ontap-san`。
+
+* IPv6
+* NVMeボリュームのSnapshotとクローン
+* NVMeボリュームのサイズ変更
+* Tridentの外部で作成されたNVMeボリュームをインポートして、そのライフサイクルをTridentで管理できるようにする
+* NVMeネイティブマルチパス
+* Kubernetesノードのグレースフルシャットダウンまたはグレースフルシャットダウン（24.06）
+
+
+Tridentは以下をサポートしていません。
+
+* NVMeでネイティブにサポートされるDH-HMAC-CHAP
+* Device Mapper（DM；デバイスマッパー）マルチパス
+* LUKS暗号化
+

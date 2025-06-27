@@ -1,0 +1,216 @@
+---
+sidebar: sidebar 
+permalink: trident-reference/pod-security.html 
+keywords: psp, pss, scc, pod security, pod security standards, pod security policies, security context constraints 
+summary: Kubernetesポッドのセキュリティ標準（PSS）とポッドのセキュリティポリシー（PSP）によって、権限レベルが定義され、ポッドの動作が制限されます。また、OpenShift Security Context Constraints（SCC）でも、OpenShift Kubernetes Engine固有のポッド制限を定義します。このカスタマイズを行うために、Tridentはインストール時に特定の権限を有効にします。 
+---
+= PODセキュリティ標準（PSS）およびセキュリティコンテキストの制約（SCC）
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Kubernetesポッドのセキュリティ標準（PSS）とポッドのセキュリティポリシー（PSP）によって、権限レベルが定義され、ポッドの動作が制限されます。また、OpenShift Security Context Constraints（SCC）でも、OpenShift Kubernetes Engine固有のポッド制限を定義します。このカスタマイズを行うために、Tridentはインストール時に特定の権限を有効にします。次のセクションでは、Tridentによって設定される権限について詳しく説明します。
+
+
+NOTE: PSSは、Podセキュリティポリシー（PSP）に代わるものです。PSPはKubernetes v1.21で廃止され、v1.25で削除されます。詳細については、を参照してくださいlink:https://kubernetes.io/docs/concepts/security/["Kubernetes：セキュリティ"]。
+
+
+
+== 必須のKubernetes Security Contextと関連フィールド
+
+[cols=","]
+|===
+| 権限 | 製品説明 
+
+
+| 権限があります | CSIでは、マウントポイントが双方向である必要があります。つまり、Tridentノードポッドで特権コンテナを実行する必要があります。詳細については、を参照してください link:https://kubernetes.io/docs/concepts/storage/volumes/#mount-propagation["Kubernetes：マウントの伝播"]。 
+
+
+| ホストネットワーク | iSCSIデーモンに必要です。 `iscsiadm`iSCSIマウントを管理し、ホストネットワークを使用してiSCSIデーモンと通信します。 
+
+
+| ホストIPC | NFSは'IPC（プロセス間通信）を使用して'nfsdと通信します 
+
+
+| ホストPID | NFSで開始する必要があり `rpc-statd`ます。Tridentは、NFSボリュームをマウントする前にが実行されているかどうかをホストプロセスに照会して判断し `rpc-statd`ます。 
+
+
+| 機能 | この `SYS_ADMIN`機能は、特権コンテナのデフォルト機能の一部として提供されています。たとえば、Dockerは特権コンテナに次の機能を設定します。
+`CapPrm: 0000003fffffffff`
+`CapEff: 0000003fffffffff` 
+
+
+| Seccom | Seccompプロファイルは特権コンテナでは常に「制限されていない」ため、Tridentでは有効にできません。 
+
+
+| SELinux | OpenShiftでは、特権コンテナは（「Super Privileged Container」）ドメインで実行され、非特権コンテナはドメインで実行さ `spc_t`れ `container_t`ます。では `containerd`、がインストールされていると `container-selinux`、すべてのコンテナがドメイン内で実行され `spc_t`、SELinuxが実質的に無効になります。そのため、Tridentはコンテナに追加しません `seLinuxOptions`。 
+
+
+| DAC | 特権コンテナは、ルートとして実行する必要があります。CSIに必要なUNIXソケットにアクセスするために、非特権コンテナはrootとして実行されます。 
+|===
+
+
+== PODセキュリティ標準（PSS）
+
+[cols=",,"]
+|===
+| ラベル | 製品説明 | デフォルト 
+
+
+| `pod-security.kubernetes.io/enforce`  `pod-security.kubernetes.io/enforce-version` | Tridentコントローラとノードをインストールネームスペースに登録できるようにします。ネームスペースラベルは変更しないでください。 | `enforce: privileged` 
+`enforce-version: <version of the current cluster or highest version of PSS tested.>` 
+|===
+
+WARNING: 名前空間ラベルを変更すると、ポッドがスケジュールされず、「Error creating：...」または「Warning：trident-csi-...」が表示される場合があります。この場合は、のネームスペースラベルが変更されていないかどうかを確認してください `privileged`。その場合は、Tridentを再インストールします。
+
+
+
+== PoDセキュリティポリシー（PSP）
+
+[cols=",,"]
+|===
+| フィールド | 製品説明 | デフォルト 
+
+
+| `allowPrivilegeEscalation` | 特権コンテナは、特権昇格を許可する必要があります。 | `true` 
+
+
+| `allowedCSIDrivers` | TridentはインラインCSIエフェメラルボリュームを使用しません。 | 空 
+
+
+| `allowedCapabilities` | 権限のないTridentコンテナにはデフォルトよりも多くの機能が必要ないため、特権コンテナには可能なすべての機能が付与されます。 | 空 
+
+
+| `allowedFlexVolumes` | Tridentではを使用できないlink:https://github.com/kubernetes/community/blob/master/contributors/devel/sig-storage/flexvolume.md["FlexVolドライバ"^]ため、これらのボリュームは許可されるボリュームのリストに含まれていません。 | 空 
+
+
+| `allowedHostPaths` | Tridentノードポッドでノードのルートファイルシステムがマウントされるため、このリストを設定してもメリットはありません。 | 空 
+
+
+| `allowedProcMountTypes` | Tridentはいずれも使用しません `ProcMountTypes`。 | 空 
+
+
+| `allowedUnsafeSysctls` | Tridentには安全でないものは必要あり `sysctls`ません。 | 空 
+
+
+| `defaultAddCapabilities` | 特権コンテナに追加する機能は必要ありません。 | 空 
+
+
+| `defaultAllowPrivilegeEscalation` | 権限の昇格は、各Tridentポッドで処理されます。 | `false` 
+
+
+| `forbiddenSysctls` | いいえは `sysctls`許可されません。 | 空 
+
+
+| `fsGroup` | Tridentコンテナはrootとして実行されます。 | `RunAsAny` 
+
+
+| `hostIPC` | NFSボリュームをマウントするにはホストIPCが通信する必要があります `nfsd` | `true` 
+
+
+| `hostNetwork` | iscsiadmには、iSCSIデーモンと通信するためのホストネットワークが必要です。 | `true` 
+
+
+| `hostPID` | ホストPIDは、がノードで実行されているかどうかを確認するために必要 `rpc-statd`です。 | `true` 
+
+
+| `hostPorts` | Tridentはホストポートを使用しません。 | 空 
+
+
+| `privileged` | Tridentノードのポッドでは、ボリュームをマウントするために特権コンテナを実行する必要があります。 | `true` 
+
+
+| `readOnlyRootFilesystem` | Tridentノードのポッドは、ノードのファイルシステムに書き込む必要があります。 | `false` 
+
+
+| `requiredDropCapabilities` | Tridentノードのポッドは特権コンテナを実行するため、機能をドロップすることはできません。 | `none` 
+
+
+| `runAsGroup` | Tridentコンテナはrootとして実行されます。 | `RunAsAny` 
+
+
+| `runAsUser` | Tridentコンテナはrootとして実行されます。 | `runAsAny` 
+
+
+| `runtimeClass` | Tridentはを使用しません `RuntimeClasses`。 | 空 
+
+
+| `seLinux` | 現在、コンテナランタイムとKubernetesディストリビューションでSELinuxを処理する方法が異なるため、Tridentは設定されて `seLinuxOptions`いません。 | 空 
+
+
+| `supplementalGroups` | Tridentコンテナはrootとして実行されます。 | `RunAsAny` 
+
+
+| `volumes` | Tridentポッドには、このボリュームプラグインが必要です。 | `hostPath, projected, emptyDir` 
+|===
+
+
+== セキュリティコンテキストの制約（SCC）
+
+[cols=",,"]
+|===
+| ラベル | 製品説明 | デフォルト 
+
+
+| `allowHostDirVolumePlugin` | Tridentノードのポッドは、ノードのルートファイルシステムをマウントします。 | `true` 
+
+
+| `allowHostIPC` | NFSボリュームをマウントするには、ホストIPCと通信する必要があり `nfsd`ます。 | `true` 
+
+
+| `allowHostNetwork` | iscsiadmには、iSCSIデーモンと通信するためのホストネットワークが必要です。 | `true` 
+
+
+| `allowHostPID` | ホストPIDは、がノードで実行されているかどうかを確認するために必要 `rpc-statd`です。 | `true` 
+
+
+| `allowHostPorts` | Tridentはホストポートを使用しません。 | `false` 
+
+
+| `allowPrivilegeEscalation` | 特権コンテナは、特権昇格を許可する必要があります。 | `true` 
+
+
+| `allowPrivilegedContainer` | Tridentノードのポッドでは、ボリュームをマウントするために特権コンテナを実行する必要があります。 | `true` 
+
+
+| `allowedUnsafeSysctls` | Tridentには安全でないものは必要あり `sysctls`ません。 | `none` 
+
+
+| `allowedCapabilities` | 権限のないTridentコンテナにはデフォルトよりも多くの機能が必要ないため、特権コンテナには可能なすべての機能が付与されます。 | 空 
+
+
+| `defaultAddCapabilities` | 特権コンテナに追加する機能は必要ありません。 | 空 
+
+
+| `fsGroup` | Tridentコンテナはrootとして実行されます。 | `RunAsAny` 
+
+
+| `groups` | このSCCはTridentに固有で、ユーザにバインドされています。 | 空 
+
+
+| `readOnlyRootFilesystem` | Tridentノードのポッドは、ノードのファイルシステムに書き込む必要があります。 | `false` 
+
+
+| `requiredDropCapabilities` | Tridentノードのポッドは特権コンテナを実行するため、機能をドロップすることはできません。 | `none` 
+
+
+| `runAsUser` | Tridentコンテナはrootとして実行されます。 | `RunAsAny` 
+
+
+| `seLinuxContext` | 現在、コンテナランタイムとKubernetesディストリビューションでSELinuxを処理する方法が異なるため、Tridentは設定されて `seLinuxOptions`いません。 | 空 
+
+
+| `seccompProfiles` | 特権のあるコンテナは常に「閉鎖的」な状態で実行されます。 | 空 
+
+
+| `supplementalGroups` | Tridentコンテナはrootとして実行されます。 | `RunAsAny` 
+
+
+| `users` | このSCCをTridentネームスペースのTridentユーザにバインドするエントリが1つあります。 | N/A 
+
+
+| `volumes` | Tridentポッドには、このボリュームプラグインが必要です。 | `hostPath, downwardAPI, projected, emptyDir` 
+|===

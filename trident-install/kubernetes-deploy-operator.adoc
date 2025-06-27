@@ -1,0 +1,266 @@
+---
+sidebar: sidebar 
+permalink: trident-get-started/kubernetes-deploy-operator.html 
+keywords: deploy, Trident, methods, operator, tridentctl, registry, registries 
+summary: Tridentオペレータを手動で導入して、Tridentをインストールできます。このプロセスは、Tridentに必要なコンテナイメージがプライベートレジストリに保存されていないインストールに適用されます。 
+---
+= Tridentオペレータを手動で導入（標準モード）
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Tridentオペレータを手動で導入して、Tridentをインストールできます。このプロセスは、Tridentに必要なコンテナイメージがプライベートレジストリに保存されていないインストールに適用されます。プライベートイメージレジストリがある場合は、を使用しlink:kubernetes-deploy-operator-mirror.html["オフライン導入のプロセス"]ます。
+
+
+
+== Trident 25.02に関する重要な情報
+
+* Tridentに関する次の重要な情報をお読みください。*
+
+.Trident </strong>に関する<strong>の重要な情報
+[%collapsible%open]
+====
+[]
+=====
+* TridentでKubernetes 1.32がサポートされるようになりました。Kubernetesをアップグレードする前にTridentをアップグレード
+* Tridentでは、SAN環境でのマルチパス構成の使用が厳密に適用されます。multipath.confファイルの推奨値はです `find_multipaths: no`。
++
+マルチパス以外の構成を使用するか、multipath.confファイルにまたは `find_multipaths: smart`の値を使用する `find_multipaths: yes`と、マウントが失敗します。Tridentでは、21.07リリース以降での使用を推奨してい `find_multipaths: no`ます。
+
+
+
+=====
+====
+
+
+== Tridentオペレータを手動で導入し、Tridentをインストール
+
+link:../trident-get-started/kubernetes-deploy.html["インストールの概要"]インストールの前提条件を満たしていることを確認し、環境に適したインストールオプションを選択してください。
+
+.開始する前に
+インストールを開始する前に、Linuxホストにログインし、動作中のを管理していること、および必要なPrivilegesが揃っていることを確認しlink:requirements.html["サポートされる Kubernetes クラスタ"^]ます。
+
+
+NOTE: OpenShiftでは、以降のすべての例での代わり `kubectl`にを使用し、または `oc login -u kube-admin`を `oc`実行して最初に* system:admin *としてログインし `oc login -u system:admin`ます。
+
+[%collapsible%open]
+====
+. Kubernetesのバージョンを確認します。
++
+[listing]
+----
+kubectl version
+----
+. クラスタ管理者の権限を確認します。
++
+[listing]
+----
+kubectl auth can-i '*' '*' --all-namespaces
+----
+. Docker Hubのイメージを使用してポッドを起動し、ポッドネットワーク経由でストレージシステムにアクセスできることを確認します。
++
+[listing]
+----
+kubectl run -i --tty ping --image=busybox --restart=Never --rm -- \
+  ping <management IP>
+----
+
+
+====
+
+
+=== 手順1：Tridentのインストーラパッケージをダウンロード
+
+Tridentインストーラパッケージには、Tridentオペレータの導入とTridentのインストールに必要なすべてのものが含まれています。からTridentインストーラの最新バージョンをダウンロードして展開しlink:https://github.com/NetApp/trident/releases/latest["GitHubの_Assets_sectionを参照してください"^]ます。
+
+[listing]
+----
+wget https://github.com/NetApp/trident/releases/download/v25.02.0/trident-installer-25.02.0.tar.gz
+tar -xf trident-installer-25.02.0.tar.gz
+cd trident-installer
+----
+
+
+=== ステップ2：CRDを作成する `TridentOrchestrator`
+
+カスタムリソース定義（CRD）を作成し `TridentOrchestrator`ます。カスタムリソースは後で作成し `TridentOrchestrator`ます。の適切なCRD YAMLバージョンを使用して `deploy/crds`CRDを作成し `TridentOrchestrator`ます。
+
+[listing]
+----
+kubectl create -f deploy/crds/trident.netapp.io_tridentorchestrators_crd_post1.16.yaml
+----
+
+
+=== ステップ3：Tridentオペレータを導入
+
+Tridentインストーラには、オペレータのインストールと関連オブジェクトの作成に使用できるバンドルファイルが用意されています。バンドルファイルは、デフォルト設定を使用してオペレータを導入し、Tridentをインストールするための簡単な方法です。
+
+* クラスタでKubernetes 1.24を実行している場合は、を使用し `bundle_pre_1_25.yaml`ます。
+* クラスタでKubernetes 1.25以降を実行している場合は、を使用します `bundle_post_1_25.yaml`。
+
+
+.開始する前に
+* デフォルトでは、Tridentインストーラによってネームスペースにオペレータが配置され `trident`ます。ネームスペースが存在しない場合は `trident`、次のコマンドを使用して作成します。
++
+[listing]
+----
+kubectl apply -f deploy/namespace.yaml
+----
+* 名前空間以外の名前空間にオペレータを配置するには `trident`、 `clusterrolebinding.yaml`を使用してバンドルファイルを更新し `serviceaccount.yaml`、 `operator.yaml`生成します `kustomization.yaml`。
++
+.. 次のコマンドを使用して、<bundle.yaml> `bundle_pre_1_25.yaml` `bundle_post_1_25.yaml`のバージョンに基づいてを作成し `kustomization.yaml`ます。
++
+[listing]
+----
+cp deploy/kustomization_<bundle.yaml> deploy/kustomization.yaml
+----
+.. 次のコマンドWHERE__ ISまたは `bundle_post_1_25.yaml`使用している<bundle.yaml>のバージョンに基づいて、バンドルをコンパイルし `bundle_pre_1_25.yaml`ます。
++
+[listing]
+----
+kubectl kustomize deploy/ > deploy/<bundle.yaml>
+----
+
+
+
+
+.手順
+. リソースを作成し、オペレータを配置します。
++
+[listing]
+----
+kubectl create -f deploy/<bundle.yaml>
+----
+. operator、deployment、およびReplicaSetsが作成されたことを確認します。
++
+[listing]
+----
+kubectl get all -n <operator-namespace>
+----
+
+
+
+IMPORTANT: Kubernetes クラスタには、オペレータのインスタンスが * 1 つしか存在しないようにしてください。Trident のオペレータが複数の環境を構築することは避けてください。
+
+
+
+=== 手順4：を作成 `TridentOrchestrator`してTridentをインストールする
+
+これで、を作成してTridentをインストールできます `TridentOrchestrator`。必要に応じて、仕様内の属性を使用 `TridentOrchestrator`できますlink:kubernetes-customize-deploy.html["Tridentのインストールをカスタマイズ"]。
+
+[listing]
+----
+kubectl create -f deploy/crds/tridentorchestrator_cr.yaml
+tridentorchestrator.trident.netapp.io/trident created
+
+kubectl describe torc trident
+
+Name:        trident
+Namespace:
+Labels:      <none>
+Annotations: <none>
+API Version: trident.netapp.io/v1
+Kind:        TridentOrchestrator
+...
+Spec:
+  Debug:     true
+  Namespace: trident
+  nodePrep:
+  - iscsi
+Status:
+  Current Installation Params:
+    IPv6:                      false
+    Autosupport Hostname:
+    Autosupport Image:         netapp/trident-autosupport:25.02
+    Autosupport Proxy:
+    Autosupport Serial Number:
+    Debug:                     true
+    Image Pull Secrets:
+    Image Registry:
+    k8sTimeout:           30
+    Kubelet Dir:          /var/lib/kubelet
+    Log Format:           text
+    Silence Autosupport:  false
+    Trident Image:        netapp/trident:25.02.0
+  Message:                  Trident installed  Namespace:                trident
+  Status:                   Installed
+  Version:                  v25.02.0
+Events:
+    Type Reason Age From Message ---- ------ ---- ---- -------Normal
+    Installing 74s trident-operator.netapp.io Installing Trident Normal
+    Installed 67s trident-operator.netapp.io Trident installed
+----
+
+
+== インストールの確認
+
+インストールを確認するには、いくつかの方法があります。
+
+
+
+=== ステータスの使用 `TridentOrchestrator`
+
+のステータス `TridentOrchestrator`は、インストールが正常に完了したかどうかを示し、インストールされているTridentのバージョンを表示します。インストール中に、のステータス `TridentOrchestrator`がからに `Installed`変わります `Installing`。ステータスを確認し、オペレータが単独で回復できない場合は `Failed`、をlink:../troubleshooting.html["ログをチェックしてください"]参照してください。
+
+[cols="2"]
+|===
+| ステータス | 製品説明 
+
+
+| インストール | オペレータはこのCRを使用してTridentをインストールしています `TridentOrchestrator`。 
+
+
+| インストール済み | Tridentは正常にインストールされました。 
+
+
+| アンインストール中です | オペレータはTridentをアンインストールしています。
+`spec.uninstall=true` 
+
+
+| アンインストール済み | Tridentがアンインストールされます。 
+
+
+| 失敗 | オペレータはTridentをインストール、パッチ適用、アップデート、またはアンインストールできませんでした。オペレータは自動的にこの状態から回復しようとします。この状態が解消されない場合は、トラブルシューティングが必要です。 
+
+
+| 更新中 | オペレータが既存のインストールを更新しています。 
+
+
+| エラー | は `TridentOrchestrator`使用されません。別のファイルがすでに存在します。 
+|===
+
+
+=== ポッドの作成ステータスを使用する
+
+作成されたポッドのステータスを確認することで、Tridentのインストールが完了したかどうかを確認できます。
+
+[listing]
+----
+kubectl get pods -n trident
+
+NAME                                       READY   STATUS    RESTARTS   AGE
+trident-controller-7d466bf5c7-v4cpw        6/6     Running   0           1m
+trident-node-linux-mr6zc                   2/2     Running   0           1m
+trident-node-linux-xrp7w                   2/2     Running   0           1m
+trident-node-linux-zh2jt                   2/2     Running   0           1m
+trident-operator-766f7b8658-ldzsv          1/1     Running   0           3m
+----
+
+
+=== 使用方法 `tridentctl`
+
+を使用して、インストールされているTridentのバージョンを確認できます `tridentctl`。
+
+[listing]
+----
+./tridentctl -n trident version
+
++----------------+----------------+
+| SERVER VERSION | CLIENT VERSION |
++----------------+----------------+
+| 25.02.0        | 25.02.0        |
++----------------+----------------+
+----

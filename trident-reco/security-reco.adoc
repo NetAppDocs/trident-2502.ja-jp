@@ -1,0 +1,72 @@
+---
+sidebar: sidebar 
+permalink: trident-reco/security-reco.html 
+keywords: security, chap, trident, namespace, nve, nae, encryption, volume encryption, aggregate encryption 
+summary: ここに記載されている推奨事項を使用して、Tridentのインストールが安全であることを確認してください。 
+---
+= セキュリティ
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+ここに記載されている推奨事項を使用して、Tridentのインストールが安全であることを確認します。
+
+
+
+== 独自のネームスペースでTridentを実行
+
+信頼性の高いストレージを確保し、潜在的な悪意のあるアクティビティをブロックするためには、アプリケーション、アプリケーション管理者、ユーザ、管理アプリケーションがTridentオブジェクト定義やポッドにアクセスできないようにすることが重要です。
+
+他のアプリケーションとユーザをTridentから分離するには、必ずTridentを独自のKubernetesネームスペースにインストールし(`trident`ます）。Tridentを独自のネームスペースに配置すると、Kubernetes管理者のみがTridentポッドと、名前空間CRDオブジェクトに格納されているアーティファクト（該当する場合はバックエンドやCHAPシークレットなど）にアクセスできるようになります。Tridentネームスペースへのアクセスを管理者のみに許可し、アプリケーションへのアクセスを許可する必要があり `tridentctl`ます。
+
+
+
+== ONTAP SAN バックエンドで CHAP 認証を使用します
+
+Tridentでは、ONTAP SANワークロードに対してCHAPベースの認証がサポートされます（ドライバと `ontap-san-economy`ドライバを使用 `ontap-san`）。NetAppでは、ホストとストレージバックエンド間の認証にTridentで双方向CHAPを使用することを推奨しています。
+
+SANストレージドライバを使用するONTAPバックエンドの場合、Tridentは双方向CHAPを設定し、でCHAPユーザ名とシークレットを管理できます `tridentctl`。TridentがONTAPバックエンドでCHAPを構成する方法については、を参照してくださいlink:../trident-use/ontap-san-prep.html["ONTAP SANドライバを使用してバックエンドを設定する準備をします"^]。
+
+
+
+== NetApp HCI および SolidFire バックエンドで CHAP 認証を使用します
+
+ホストと NetApp HCI バックエンドと SolidFire バックエンドの間の認証を確保するために、双方向の CHAP を導入することを推奨します。Tridentは、テナントごとに2つのCHAPパスワードを含むシークレットオブジェクトを使用します。Tridentをインストールすると、CHAPシークレットが管理され、それぞれのPVのCRオブジェクトに格納され `tridentvolume`ます。PVを作成すると、TridentはCHAPシークレットを使用してiSCSIセッションを開始し、CHAPを介してNetApp HCIおよびSolidFireシステムと通信します。
+
+
+NOTE: Tridentで作成されるボリュームは、どのボリュームアクセスグループにも関連付けられません。
+
+
+
+== NVEおよびNAEでのTridentの使用
+
+NetApp ONTAP は、保管データの暗号化を提供し、ディスクが盗難、返却、転用された場合に機密データを保護します。詳細については、を参照してください link:https://docs.netapp.com/us-en/ontap/encryption-at-rest/configure-netapp-volume-encryption-concept.html["NetAppボリューム暗号化の設定の概要"^]。
+
+* バックエンドでNAEが有効になっている場合、TridentでプロビジョニングされたすべてのボリュームでNAEが有効になります。
++
+** NVE暗号化フラグをに設定すると、NAE対応ボリュームを作成できます `""`。
+
+
+* バックエンドでNAEが有効になっていない場合、バックエンド構成でNVE暗号化フラグが（デフォルト値）に設定されていないかぎり、TridentでプロビジョニングされたボリュームはNVE対応になり `false`ます。
+
+
+[NOTE]
+====
+NAE対応バックエンドのTridentで作成されたボリュームは、NVEまたはNAEで暗号化する必要があります。
+
+* Tridentバックエンド構成でNVE暗号化フラグをに設定すると、NAE暗号化を無効にして、ボリューム単位で特定の暗号化キーを使用でき `true`ます。
+* NAE対応バックエンドでNVE暗号化フラグをに設定する `false`と、NAE対応ボリュームが作成されます。NVE暗号化フラグをに設定してNAE暗号化を無効にすることはできません `false`。
+
+
+====
+* TridentでNVEボリュームを手動で作成するには、NVE暗号化フラグを明示的にに設定し `true`ます。
+
+
+バックエンド構成オプションの詳細については、以下を参照してください。
+
+* link:../trident-use/ontap-san-examples.html["ONTAP SANの構成オプション"]
+* link:../trident-use/ontap-nas-examples.html["ONTAP NASの構成オプション"]
+

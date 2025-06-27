@@ -1,0 +1,77 @@
+---
+sidebar: sidebar 
+permalink: trident-docker/collect-logs-docker.html 
+keywords: deploy, Trident, trident for docker, docker, logs, binary, managed plugin 
+summary: トラブルシューティングに役立つログを収集できます。ログの収集方法は、 Docker プラグインの実行方法によって異なります。 
+---
+= ログを収集します
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+トラブルシューティングに役立つログを収集できます。ログの収集方法は、 Docker プラグインの実行方法によって異なります。
+
+
+
+== トラブルシューティング用にログを収集する
+
+.手順
+. 推奨される管理プラグイン方式を使用して（コマンドを使用して）Tridentを実行している場合は `docker plugin`、次のように表示します。
++
+[source, console]
+----
+docker plugin ls
+----
++
+[listing]
+----
+ID                  NAME                DESCRIPTION                          ENABLED
+4fb97d2b956b        netapp:latest       nDVP - NetApp Docker Volume Plugin   false
+journalctl -u docker | grep 4fb97d2b956b
+----
++
+標準的なロギングレベルでは、ほとんどの問題を診断できます。十分でない場合は、デバッグロギングを有効にすることができます。
+
+. デバッグロギングをイネーブルにするには、デバッグロギングをイネーブルにしてプラグインをインストールします。
++
+[source, console]
+----
+docker plugin install netapp/trident-plugin:<version> --alias <alias> debug=true
+----
++
+または、プラグインがすでにインストールされている場合にデバッグログを有効にします。
+
++
+[source, console]
+----
+docker plugin disable <plugin>
+----
++
+[source, console]
+----
+docker plugin set <plugin> debug=true
+----
++
+[source, console]
+----
+docker plugin enable <plugin>
+----
+. ホストでバイナリ自体を実行している場合、ログはホストのディレクトリにあり `/var/log/netappdvp`ます。デバッグログを有効にするには、プラグインを実行するタイミングを指定します `-debug`。
+
+
+
+
+== 一般的なトラブルシューティングのヒント
+
+* 新しいユーザーが実行する最も一般的な問題は、プラグインの初期化を妨げる構成ミスです。この場合、プラグインをインストールまたは有効にしようとすると、次のようなメッセージが表示されることがあります。
++
+`Error response from daemon: dial unix /run/docker/plugins/<id>/netapp.sock: connect: no such file or directory`
+
++
+これは、プラグインの起動に失敗したことを意味します。幸い、このプラグインには、発生する可能性の高い問題のほとんどを診断するのに役立つ包括的なログ機能が組み込まれています。
+
+* コンテナへのPVのマウントに問題がある場合は、がインストールされて実行されていることを確認して `rpcbind`ください。ホストOSに必要なパッケージマネージャを使用して、が実行されているかどうかを確認します `rpcbind`。rpcbindサービスのステータスを確認するには、または同等のを実行し `systemctl status rpcbind`ます。
+

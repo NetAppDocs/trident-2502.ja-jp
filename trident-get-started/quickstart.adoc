@@ -1,0 +1,62 @@
+---
+sidebar: sidebar 
+permalink: trident-get-started/quickstart.html 
+keywords: kubernetes cluster, simple installation, Kubernetes installation 
+summary: Kubernetes の使用を開始したばかりの場合は、手順に従って Kubernetes をインストールして試してください。この説明では、 Trident をデモ用に統合できるベアボーンのシングルノードクラスタについて説明しています。 
+---
+= クイックスタートガイド（Trident）
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Tridentをインストールしてストレージリソースの管理を開始するには、いくつかの手順を実行します。作業を開始する前に、を参照してくださいlink:requirements.html["Tridentの要件"]。
+
+
+NOTE: Dockerについては、を参照してlink:../trident-docker/deploy-docker.html["Trident for Docker"]ください。
+
+.image:https://raw.githubusercontent.com/NetAppDocs/common/main/media/number-1.png["1つ"]ワーカーノードの準備
+[role="quick-margin-para"]
+Kubernetesクラスタ内のすべてのワーカーノードが、ポッド用にプロビジョニングしたボリュームをマウントできる必要があります。
+
+[role="quick-margin-para"]
+link:../trident-use/worker-node-prep.html["ワーカーノードを準備します"]
+
+.image:https://raw.githubusercontent.com/NetAppDocs/common/main/media/number-2.png["2つ"]Tridentのインストール
+[role="quick-margin-para"]
+Tridentには、さまざまな環境や組織に最適化されたいくつかのインストール方法とモードが用意されています。
+
+[role="quick-margin-para"]
+link:../trident-get-started/kubernetes-deploy.html["Trident をインストール"]
+
+.image:https://raw.githubusercontent.com/NetAppDocs/common/main/media/number-3.png["3つ"]バックエンドの作成
+[role="quick-margin-para"]
+バックエンドは、Tridentとストレージシステムの間の関係を定義します。Tridentは、そのストレージシステムとの通信方法や、Tridentがそのシステムからボリュームをプロビジョニングする方法を解説します。
+
+[role="quick-margin-para"]
+link:../trident-use/backends.html["バックエンドの設定"]ストレージシステム
+
+.image:https://raw.githubusercontent.com/NetAppDocs/common/main/media/number-4.png["4つ"]Kubernetesストレージクラスの作成
+[role="quick-margin-para"]
+Kubernetes StorageClassオブジェクトでは、プロビジョニングツールとしてTridentが指定されており、カスタマイズ可能な属性を使用してボリュームをプロビジョニングするためのストレージクラスを作成できます。Tridentは、Tridentプロビジョニングツールを指定するKubernetesオブジェクト用に一致するストレージクラスを作成します。
+
+[role="quick-margin-para"]
+link:../trident-use/create-stor-class.html["ストレージクラスを作成する。"]
+
+.image:https://raw.githubusercontent.com/NetAppDocs/common/main/media/number-5.png["5 つ"]ボリュームをプロビジョニングする
+[role="quick-margin-para"]
+A_PersistentVolume_（PV）は、Kubernetesクラスタ上のクラスタ管理者がプロビジョニングする物理ストレージリソースです。_PersistentVolumeClaim_（PVC）は、クラスタ上のPersistentVolumeへのアクセス要求です。
+
+[role="quick-margin-para"]
+設定したKubernetes StorageClassを使用してPVへのアクセスを要求するPersistentVolume（PV）とPersistentVolumeClaim（PVC）を作成します。その後、PVをポッドにマウントできます。
+
+[role="quick-margin-para"]
+link:../trident-use/vol-provision.html["ボリュームをプロビジョニングする"]
+
+
+
+== 次の手順
+
+バックエンドの追加、ストレージクラスの管理、バックエンドの管理、ボリューム処理の実行が可能になりました。

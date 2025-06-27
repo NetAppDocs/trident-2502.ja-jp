@@ -1,0 +1,14 @@
+---
+section: trident-reference
+title: 参考文献
+entries:
+- title: Tridentポート
+  url: "/trident-reference/ports.html"
+- title: Trident REST API
+  url: "/trident-reference/rest-api.html"
+- title: コマンドラインオプション
+  url: "/trident-reference/trident-cl.html"
+- title: Kubernetes オブジェクトと Trident オブジェクト
+  url: "/trident-reference/objects.html"
+- title: PODセキュリティ標準（PSS）およびセキュリティコンテキストの制約（SCC）
+  url: "/trident-reference/pod-security.html"

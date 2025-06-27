@@ -1,0 +1,272 @@
+---
+sidebar: sidebar 
+permalink: trident-use/element.html 
+keywords: trident backend, solidfire, netapp hci, drivers, access modes, rwo, rwx, rwp, rwop, file system 
+summary: Trident 環境で Element バックエンドを作成して使用する方法について説明します。 
+---
+= NetApp HCI または SolidFire バックエンドを設定します
+:hardbreaks:
+:allow-uri-read: 
+:icons: font
+:imagesdir: ../media/
+
+
+[role="lead"]
+Trident環境でElementバックエンドを作成して使用する方法について説明します。
+
+
+
+== Elementドライバの詳細
+
+Tridentは、クラスタと通信するためのストレージドライバを提供します `solidfire-san`。サポートされているアクセスモードは、_ReadWriteOnce_(RWO)、_ReadOnlyMany_(ROX)、_ReadWriteMany_(RWX)、_ReadWriteOncePod_(RWOP)です。
+
+ `solidfire-san`ストレージドライバは、_file_and_block_volumeモードをサポートしています。volumeModeの場合 `Filesystem`、Tridentはボリュームを作成し、ファイルシステムを作成します。ファイルシステムのタイプは StorageClass で指定されます。
+
+[cols="5"]
+|===
+| ドライバ | プロトコル | ボリュームモード | サポートされているアクセスモード | サポートされるファイルシステム 
+
+
+| `solidfire-san`  a| 
+iSCSI
+ a| 
+ブロック
+ a| 
+RWO、ROX、RWX、RWOP
+ a| 
+ファイルシステムがありません。raw ブロックデバイスです。
+
+
+
+| `solidfire-san`  a| 
+iSCSI
+ a| 
+ファイルシステム
+ a| 
+RWO、RWOP
+ a| 
+`xfs`、 `ext3`、 `ext4`
+
+|===
+
+
+== 開始する前に
+
+Elementバックエンドを作成する前に、次の情報が必要になります。
+
+* Element ソフトウェアを実行する、サポート対象のストレージシステム。
+* NetApp HCI / SolidFire クラスタ管理者またはボリュームを管理できるテナントユーザのクレデンシャル。
+* すべての Kubernetes ワーカーノードに適切な iSCSI ツールをインストールする必要があります。を参照してください link:../trident-use/worker-node-prep.html["ワーカーノードの準備情報"]。
+
+
+
+
+== バックエンド構成オプション
+
+バックエンド設定オプションについては、次の表を参照してください。
+
+[cols="3"]
+|===
+| パラメータ | 製品説明 | デフォルト 
+
+
+| `version` |  | 常に 1 
+
+
+| `storageDriverName` | ストレージドライバの名前 | 常に「SolidFire - SAN」 
+
+
+| `backendName` | カスタム名またはストレージバックエンド | 「SolidFire _」+ストレージ（iSCSI）IPアドレス 
+
+
+| `Endpoint` | テナントのクレデンシャルを使用する SolidFire クラスタの MVIP |  
+
+
+| `SVIP` | ストレージ（ iSCSI ）の IP アドレスとポート |  
+
+
+| `labels` | ボリュームに適用する任意の JSON 形式のラベルのセット。 | "" 
+
+
+| `TenantName` | 使用するテナント名（見つからない場合に作成） |  
+
+
+| `InitiatorIFace` | iSCSI トラフィックを特定のホストインターフェイスに制限します | デフォルト 
+
+
+| `UseCHAP` | CHAPを使用してiSCSIを認証します。TridentはCHAPを使用します。 | 正しい 
+
+
+| `AccessGroups` | 使用するアクセスグループ ID のリスト | 「Trident」という名前のアクセスグループのIDを検索します。 
+
+
+| `Types` | QoS の仕様 |  
+
+
+| `limitVolumeSize` | 要求されたボリュームサイズがこの値を超えている場合、プロビジョニングが失敗します | "" （デフォルトでは適用されません） 
+
+
+| `debugTraceFlags` | トラブルシューティング時に使用するデバッグフラグ。例：｛"api"：false、"method"：true｝ | null 
+|===
+
+WARNING: トラブルシューティングを行い、詳細なログダンプが必要な場合を除き、は使用しない `debugTraceFlags`でください。
+
+
+
+== 例1：3つのボリュームタイプを持つドライバのバックエンド構成 `solidfire-san`
+
+次の例は、 CHAP 認証を使用するバックエンドファイルと、特定の QoS 保証を適用した 3 つのボリュームタイプのモデリングを示しています。次に、ストレージクラスパラメータを使用して各ストレージクラスを使用するように定義します `IOPS`。
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: solidfire-san
+Endpoint: https://<user>:<password>@<mvip>/json-rpc/8.0
+SVIP: <svip>:3260
+TenantName: <tenant>
+labels:
+  k8scluster: dev1
+  backend: dev1-element-cluster
+UseCHAP: true
+Types:
+  - Type: Bronze
+    Qos:
+      minIOPS: 1000
+      maxIOPS: 2000
+      burstIOPS: 4000
+  - Type: Silver
+    Qos:
+      minIOPS: 4000
+      maxIOPS: 6000
+      burstIOPS: 8000
+  - Type: Gold
+    Qos:
+      minIOPS: 6000
+      maxIOPS: 8000
+      burstIOPS: 10000
+----
+
+
+== 例2：仮想プールを使用するドライバのバックエンドとストレージクラスの構成 `solidfire-san`
+
+この例は、仮想プールとともに、それらを参照するStorageClassesとともに構成されているバックエンド定義ファイルを示しています。
+
+ストレージプールに存在するラベルを、プロビジョニング時にバックエンドストレージLUNにコピーしますTrident。ストレージ管理者は、仮想プールごとにラベルを定義したり、ボリュームをラベルでグループ化したりできます。
+
+以下に示すサンプルのバックエンド定義ファイルでは、すべてのストレージプールに特定のデフォルトが設定されており、そのデフォルトはAt Silverに設定されて `type`います。仮想プールは、セクションで定義し `storage`ます。この例では、一部のストレージプールが独自のタイプを設定し、一部のプールが上記のデフォルト値を上書きします。
+
+[source, yaml]
+----
+---
+version: 1
+storageDriverName: solidfire-san
+Endpoint: https://<user>:<password>@<mvip>/json-rpc/8.0
+SVIP: <svip>:3260
+TenantName: <tenant>
+UseCHAP: true
+Types:
+  - Type: Bronze
+    Qos:
+      minIOPS: 1000
+      maxIOPS: 2000
+      burstIOPS: 4000
+  - Type: Silver
+    Qos:
+      minIOPS: 4000
+      maxIOPS: 6000
+      burstIOPS: 8000
+  - Type: Gold
+    Qos:
+      minIOPS: 6000
+      maxIOPS: 8000
+      burstIOPS: 10000
+type: Silver
+labels:
+  store: solidfire
+  k8scluster: dev-1-cluster
+region: us-east-1
+storage:
+  - labels:
+      performance: gold
+      cost: "4"
+    zone: us-east-1a
+    type: Gold
+  - labels:
+      performance: silver
+      cost: "3"
+    zone: us-east-1b
+    type: Silver
+  - labels:
+      performance: bronze
+      cost: "2"
+    zone: us-east-1c
+    type: Bronze
+  - labels:
+      performance: silver
+      cost: "1"
+    zone: us-east-1d
+
+
+----
+次のStorageClass定義は、上記の仮想プールを参照しています。フィールドを使用して `parameters.selector`、各StorageClassはボリュームのホストに使用できる仮想プールを呼び出します。ボリュームには、選択した仮想プール内で定義された要素があります。
+
+最初のStorageClass(`solidfire-gold-four`）が最初の仮想プールにマッピングされます。これは、ゴールドのパフォーマンスとゴールドのパフォーマンスを提供する唯一のプールです `Volume Type QoS`。最後のStorageClass(`solidfire-silver`）は、Silverパフォーマンスを提供するストレージプールを呼び出します。Tridentが選択する仮想プールを決定し、ストレージ要件が満たされるようにします。
+
+[source, yaml]
+----
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-gold-four
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=gold; cost=4
+  fsType: ext4
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-silver-three
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=silver; cost=3
+  fsType: ext4
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-bronze-two
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=bronze; cost=2
+  fsType: ext4
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-silver-one
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=silver; cost=1
+  fsType: ext4
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: solidfire-silver
+provisioner: csi.trident.netapp.io
+parameters:
+  selector: performance=silver
+  fsType: ext4
+----
+
+
+== 詳細情報
+
+* link:../trident-concepts/vol-access-groups.html["ボリュームアクセスグループ"^]
+
