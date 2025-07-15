@@ -4625,7 +4625,6 @@
   <block id="b414f77491b337ef4f2181d2e6a210b3" category="cell">「false」*を指定すると、ASA R2 *の場合はに設定されます<block ref="b326b5062b2f0e69046810717534cb09" prefix=" " category="inline-code"></block>。</block>
   <block id="b8ae61dc50cf8e8b79e68bc4a8d36393" category="cell"><block ref="0f179ba2bc32ab5d8f60692f5b800c86" prefix="" category="inline-code"></block></block>
   <block id="a56dcba8eacdac67fb510e1434d560d8" category="inline-link-macro">Linux Unified Key Setup（LUKS；統合キーセットアップ）を使用</block>
-  <block id="e29a6d196232b6cdf3ae52f871ba291b" category="cell">LUKS暗号化を有効にします。を参照してください <block ref="569f9f91cdcc19909b8acbf6f423daf7" category="inline-link-macro-rx"></block>。LUKS暗号化はNVMe/TCPではサポートされません。</block>
   <block id="f50abf25c5eef34d11b26eb12f993fca" category="cell">"" ASA R2の場合はに設定します<block ref="68934a3e9455fa72420237eb05902327" prefix=" " category="inline-code"></block>。</block>
   <block id="00f7c04dee401ca096a84ce3ce7cb61d" category="cell">「none」を使用する階層化ポリシー* ASA R2 *には指定しないでください。</block>
   <block id="e78c177a9e5dfcf995756c1f03c48529" category="admonition">ドライバを使用して作成されたすべてのボリュームについて、<block ref="73a3350a1b91aeb6e2836fdf5975672c" prefix=" " category="inline-code"></block>TridentはLUNメタデータに対応するために10%の容量をFlexVolに追加します。LUN は、ユーザが PVC で要求したサイズとまったく同じサイズでプロビジョニングされます。Tridentは、FlexVolに10%を追加します（ONTAPでは使用可能なサイズとして表示されます）。ユーザには、要求した使用可能容量が割り当てられます。また、利用可能なスペースがフルに活用されていないかぎり、 LUN が読み取り専用になることもありません。これは、 ONTAP と SAN の経済性には該当しません。</block>
@@ -5498,4 +5497,5 @@
   <block id="e8ce47501426b8525633fc30daf17d7a" category="sidebar">ボリューム名をカスタマイズ</block>
   <block id="f18a50f02f48551895d57b81dd288142" category="sidebar">ネームスペース間でNFSボリュームを共有します</block>
   <block id="62486fa65fc31c383ace8989549632ad" category="sidebar">スナップショットの使用</block>
+  <block id="b71ccf1062cee8c376a7eb37e3c42603" category="cell">LUKS暗号化を有効にします。を参照してください <block ref="569f9f91cdcc19909b8acbf6f423daf7" category="inline-link-macro-rx"></block>。</block>
 </blocks>
