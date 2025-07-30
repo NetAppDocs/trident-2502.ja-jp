@@ -118,9 +118,6 @@ AKSクラスタでクラウドIDを使用する場合は、ワークロードID�
 
 
 | `nodePrep` | 指定したデータストレージプロトコルを使用してボリュームを管理できるように、TridentでKubernetesクラスタのノードを準備できるようにします。*現在 `iscsi`サポートされている値は、のみです。* |  
-
-
-| `enableAutoBackendConfig` | 自動バックエンド構成を有効にします。これにより、入力パラメータに基づいてバックエンドとストレージクラスがシームレスに作成されます。 | デフォルトはありません。オプションです 
 |===
 
 NOTE: ポッドパラメータのフォーマットの詳細については、を参照してくださいlink:https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/["ポッドをノードに割り当てます"^]。
