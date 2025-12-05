@@ -2,9 +2,9 @@
 sidebar: sidebar 
 permalink: trident-protect/trident-protect-appvault-custom-resources.html 
 keywords: trident. appvault, custom, protect, kubernetes 
-summary: Trident保護用のバケットカスタムリソース（CR）は、AppVaultと呼ばれます。AppVaultsは、ストレージバケットの宣言型Kubernetesワークフロー表現です。 
+summary: 'Trident Protect のバケット カスタム リソース (CR) は、AppVault と呼ばれます。AppVault は、ストレージ バケットの宣言型 Kubernetes ワークフロー表現です。' 
 ---
-= Trident protect AppVaultオブジェクトを使用してバケットを管理する
+= Trident Protect AppVault オブジェクトを使用してバケットを管理する
 :hardbreaks:
 :allow-uri-read: 
 :nofooter: 
@@ -14,9 +14,9 @@ summary: Trident保護用のバケットカスタムリソース（CR）は、Ap
 
 
 [role="lead"]
-Trident保護用のバケットカスタムリソース（CR）は、AppVaultと呼ばれます。AppVaultオブジェクトは、ストレージバケットの宣言型Kubernetesワークフロー表現です。AppVault CRには、バックアップ、Snapshot、リストア処理、SnapMirrorレプリケーションなど、保護処理でバケットを使用するために必要な設定が含まれています。AppVaultsを作成できるのは管理者のみです。
+Trident Protect のバケット カスタム リソース (CR) は、AppVault と呼ばれます。AppVault オブジェクトは、ストレージ バケットの宣言型 Kubernetes ワークフロー表現です。AppVault CR には、バックアップ、スナップショット、復元操作、 SnapMirrorレプリケーションなどの保護操作でバケットを使用するために必要な構成が含まれています。AppVault を作成できるのは管理者のみです。
 
-アプリケーションでデータ保護処理を実行する場合は、手動またはコマンドラインを使用してAppVault CRを作成する必要があります。また、Trident protectがインストールされているクラスタにAppVault CRを配置する必要があります。AppVault CRはお使いの環境に固有のものです。このページの例は、AppVault CRSを作成する際のガイドとして使用できます。
+アプリケーションでデータ保護操作を実行するときは、手動で、またはコマンド ラインを使用して AppVault CR を作成する必要があります。また、AppVault CR は、 Trident Protect がインストールされているクラスター上に存在する必要があります。  AppVault CR は環境に固有のものであり、AppVault CR を作成するときにこのページの例をガイドとして使用できます。
 
 
 
@@ -28,17 +28,17 @@ AppVault CRを作成する前に、AppVaultおよび選択したデータムー�
 
 === Data Moverリポジトリのパスワード
 
-CRSまたはTrident PROTECT CLIプラグインを使用してAppVaultオブジェクトを作成する場合、必要に応じて、ResticおよびKopiaリポジトリ暗号化用のカスタムパスワードを含むKubernetesシークレットを使用するようにTrident PROTECTに指示できます。シークレットを指定しない場合、Trident保護ではデフォルトのパスワードが使用されます。
+CR またはTrident Protect CLI プラグインを使用して AppVault オブジェクトを作成するときに、オプションで、Restic および Kopia リポジトリの暗号化用のカスタム パスワードを含む Kubernetes シークレットを使用するようにTrident Protect に指示できます。秘密を指定しない場合、 Trident Protect はデフォルトのパスワードを使用します。
 
 * AppVault CR を手動で作成する場合は、*spec.dataMoverPasswordSecretRef* フィールドを使用してシークレットを指定します。
-* Trident Protect CLIを使用してAppVaultオブジェクトを作成する場合は、  `--data-mover-password-secret-ref`秘密を指定するための引数。
+* Trident Protect CLIを使用してAppVaultオブジェクトを作成する場合は、 `--data-mover-password-secret-ref`秘密を指定するための引数。
 
 
 
 
 ==== Data Moverリポジトリパスワードシークレットの作成
 
-次の例を使用して、パスワードシークレットを作成します。AppVaultオブジェクトを作成するときに、Trident protectにこのシークレットを使用してData Moverリポジトリで認証するように指示できます。
+次の例を使用して、パスワード シークレットを作成します。AppVault オブジェクトを作成するときに、このシークレットを使用してデータ ムーバー リポジトリで認証するようにTrident Protect に指示できます。
 
 
 NOTE: 使用しているData Moverに応じて、そのData Moverに対応するパスワードだけを含める必要があります。たとえば、Resticを使用していて、今後Kopiaを使用する予定がない場合は、シークレットを作成するときにResticパスワードのみを含めることができます。
@@ -76,7 +76,7 @@ kubectl create secret generic my-optional-data-mover-secret \
 
 === S3互換ストレージのIAM権限
 
-Amazon S3、Generic S3などのS3互換ストレージにアクセスする場合、  https://docs.netapp.com/us-en/storagegrid/s3/index.html["StorageGRID S3"^] 、 または https://docs.netapp.com/us-en/ontap/s3-config/["ONTAP S3"^] Trident Protectを使用する場合、提供するユーザー認証情報がバケットへのアクセスに必要な権限を持っていることを確認する必要があります。以下は、Trident Protectを使用したアクセスに必要な最小限の権限を付与するポリシーの例です。このポリシーは、S3互換バケットポリシーを管理するユーザーに適用できます。
+Amazon S3、Generic S3などのS3互換ストレージにアクセスする場合、 https://docs.netapp.com/us-en/storagegrid/s3/index.html["StorageGRID S3"^] 、 または https://docs.netapp.com/us-en/ontap/s3-config/["ONTAP S3"^]Trident Protect を使用する場合は、提供したユーザー認証情報にバケットにアクセスするために必要な権限があることを確認する必要があります。以下は、 Trident Protect によるアクセスに必要な最小限の権限を付与するポリシーの例です。このポリシーは、S3 互換バケットポリシーを管理するユーザーに適用できます。
 
 [source, json]
 ----
@@ -353,7 +353,7 @@ spec:
 ====
 
 
-=== Trident保護CLIを使用したAppVaultの作成例
+=== Trident Protect CLI を使用した AppVault 作成例
 
 次のCLIコマンド例を使用して、プロバイダごとにAppVault CRSを作成できます。
 
@@ -444,7 +444,7 @@ tridentctl-protect create vault StorageGridS3 <vault-name> \
 
 == AppVault情報の表示
 
-Trident保護CLIプラグインを使用して、クラスタ上に作成したAppVaultオブジェクトに関する情報を表示できます。
+Trident Protect CLI プラグインを使用して、クラスター上に作成した AppVault オブジェクトに関する情報を表示できます。
 
 .手順
 . AppVaultオブジェクトの内容を表示します。
@@ -477,7 +477,7 @@ tridentctl-protect get appvaultcontent gcp-vault \
 ----
 . 必要に応じて、各リソースのAppVaultPathを表示するには、フラグを使用し `--show-paths`ます。
 +
-テーブルの最初の列に表示されるクラスタ名は、Trident protect helmのインストールでクラスタ名が指定されている場合にのみ使用できます。例： `--set clusterName=production1`。
+表の最初の列にあるクラスター名は、 Trident Protect Helm インストールでクラスター名が指定された場合にのみ使用できます。例えば： `--set clusterName=production1` 。
 
 
 
@@ -507,7 +507,7 @@ kubectl delete appvault <appvault-name> \
 
 
 --
-.Trident保護CLIを使用したAppVaultの削除
+.Trident Protect CLI を使用して AppVault を削除する
 --
 . AppVaultオブジェクトを削除し、削除するAppVaultオブジェクトの名前に置き換え `appvault-name`ます。
 +

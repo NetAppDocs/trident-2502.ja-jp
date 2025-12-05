@@ -1,10 +1,10 @@
 ---
 sidebar: sidebar 
 permalink: trident-protect/trident-protect-customize-installation.html 
-keywords: customize, trident protect, resource limits, security context constraints, SCC, NetApp AutoSupport, proxy connection, helm, helm chart, helm upgrade 
-summary: 特定のニーズに合わせて、Trident protectのデフォルト設定をカスタマイズします。 
+keywords: customize, trident Protect, resource limits, security context constraints, SCC, NetApp AutoSupport, proxy connection, helm, helm chart, helm upgrade 
+summary: 特定のニーズに合わせてTrident Protect のデフォルト設定をカスタマイズします。 
 ---
-= Trident保護インストールのカスタマイズ
+= Trident Protectのインストールをカスタマイズする
 :hardbreaks:
 :allow-uri-read: 
 :icons: font
@@ -12,17 +12,17 @@ summary: 特定のニーズに合わせて、Trident protectのデフォルト�
 
 
 [role="lead"]
-Trident保護のデフォルト設定をカスタマイズして、環境の特定の要件を満たすことができます。
+環境の特定の要件を満たすように、 Trident Protect のデフォルト構成をカスタマイズできます。
 
 
 
-== Trident保護コンテナのリソース制限を指定
+== Trident Protectコンテナのリソース制限を指定する
 
-Trident保護のインストール後に、構成ファイルを使用してTrident保護コンテナのリソース制限を指定できます。リソース制限を設定すると、Trident保護処理で消費されるクラスタのリソースの量を制御できます。
+Trident Protect をインストールした後、構成ファイルを使用してTrident Protect コンテナーのリソース制限を指定できます。リソース制限を設定すると、 Trident Protect 操作によって消費されるクラスターのリソースの量を制御できます。
 
 .手順
 . という名前のファイルを作成します `resourceLimits.yaml`。
-. 環境のニーズに応じて、Trident保護コンテナのリソース制限オプションをファイルに入力します。
+. 環境のニーズに応じて、 Trident Protect コンテナのリソース制限オプションをファイルに入力します。
 +
 次の構成ファイルの例は、使用可能な設定を示しています。このファイルには、各リソース制限のデフォルト値が含まれています。
 
@@ -89,7 +89,7 @@ helm upgrade trident-protect -n trident-protect netapp-trident-protect/trident-p
 
 == セキュリティコンテキスト制約のカスタマイズ
 
-Tridentプロテクトのインストール後、構成ファイルを使用して、TridentプロテクトコンテナのOpenShift Security Context Constraint（SCC；セキュリティコンテキスト制約）を変更できます。これらの制約により、Red Hat OpenShiftクラスタ内のポッドのセキュリティ制限が定義されます。
+Trident Protect をインストールした後、構成ファイルを使用して、 Trident Protect コンテナーの OpenShift セキュリティ コンテキスト制約 (SCC) を変更できます。これらの制約は、Red Hat OpenShift クラスター内のポッドのセキュリティ制限を定義します。
 
 .手順
 . という名前のファイルを作成します `sccconfig.yaml`。
@@ -134,16 +134,16 @@ helm upgrade trident-protect netapp-trident-protect/trident-protect -f sccconfig
 
 
 
-== Trident保護用のNetApp AutoSupport接続の設定
+== Trident Protect のNetApp AutoSupport接続を構成する
 
-接続のプロキシを設定することで、Trident PROTECTがNetAppサポートに接続してサポートバンドルをアップロードする方法を変更できます。必要に応じて、セキュアな接続またはセキュアでない接続を使用するようにプロキシを設定できます。
+接続用のプロキシを設定することで、 Trident Protect がNetAppサポートに接続してサポート バンドルをアップロードする方法を変更できます。ニーズに応じて、安全な接続または安全でない接続のいずれかを使用するようにプロキシを設定できます。
 
 [role="tabbed-block"]
 ====
 .セキュアプロキシ接続の設定
 --
 .手順
-. Trident保護サポートバンドルをアップロードするためのセキュアプロキシ接続を設定します。
+. Trident Protect サポート バンドルのアップロード用に安全なプロキシ接続を構成します。
 +
 [source, console]
 ----
@@ -155,7 +155,7 @@ helm upgrade trident-protect -n trident-protect netapp-trident-protect/trident-p
 .セキュアでないプロキシ接続を設定する
 --
 .手順
-. TLS検証をスキップするTrident保護サポートバンドルのアップロードにセキュアでないプロキシ接続を設定します。
+. TLS 検証をスキップする、 Trident Protect サポート バンドルのアップロード用の安全でないプロキシ接続を構成します。
 +
 [source, console]
 ----
@@ -167,9 +167,9 @@ helm upgrade trident-protect -n trident-protect netapp-trident-protect/trident-p
 ====
 
 
-== Trident保護ポッドを特定のノードに制限する
+== Trident Protectポッドを特定のノードに制限する
 
-KubernetesのnodeSelectorノード選択制約を使用すると、ノードラベルに基づいて、Trident保護ポッドを実行できるノードを制御できます。デフォルトでは、Trident保護はLinuxを実行しているノードに制限されます。必要に応じて、これらの制約をさらにカスタマイズできます。
+Kubernetes nodeSelector ノード選択制約を使用すると、ノード ラベルに基づいて、どのノードがTrident Protect ポッドを実行できるかを制御できます。デフォルトでは、 Trident Protect は Linux を実行しているノードに制限されています。ニーズに応じてこれらの制約をさらにカスタマイズできます。
 
 .手順
 . という名前のファイルを作成します `nodeSelectorConfig.yaml`。
@@ -195,12 +195,12 @@ helm upgrade trident-protect -n trident-protect netapp-trident-protect/trident-p
 
 
 
-== 毎日のTrident保護AutoSupportバンドルのアップロードを無効にする
+== 毎日のTrident Protect AutoSupportバンドルのアップロードを無効にする
 
-必要に応じて、Trident protect AutoSupportサポートバンドルのスケジュールされた毎日のアップロードを無効にすることができます。
+オプションで、毎日スケジュールされているTrident Protect AutoSupportサポート バンドルのアップロードを無効にすることができます。
 
 
-NOTE: デフォルトでは、Trident protectは、クラスタと管理対象アプリケーションに関するログ、指標、トポロジ情報など、NetAppサポートケースをオープンする際に役立つサポート情報を収集します。Trident PROTECTは、これらのサポートバンドルを日次スケジュールでNetAppに送信します。いつでも手動で行うことができlink:trident-protect-generate-support-bundle.html["サポートバンドルの生成"]ます。
+NOTE: デフォルトでは、 Trident Protect は、クラスターと管理対象アプリケーションに関するログ、メトリック、トポロジ情報など、開く可能性のあるNetAppサポート ケースに役立つサポート情報を収集します。 Trident Protect は、これらのサポート バンドルを毎日スケジュールに従ってNetAppに送信します。手動でlink:trident-protect-generate-support-bundle.html["サポートバンドルの生成"]いつでも。
 
 .手順
 . という名前のファイルを作成します `autosupportconfig.yaml`。

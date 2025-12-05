@@ -17,7 +17,7 @@ NOTE: Red Hat OpenShiftを使用する場合は、OpenShift環境でのネーム
 ----
 kubectl set env -n trident-protect deploy/trident-protect-controller-manager RESTORE_SKIP_NAMESPACE_ANNOTATIONS=<annotation_key_to_skip_1>,<annotation_key_to_skip_2>
 ----
-フラグを指定してHelmを使用してソースアプリケーションをインストールした場合は `--create-namespace`、ラベルキーに特別な処理が行わ `name`れます。Trident保護では、リストアまたはフェイルオーバーのプロセスでこのラベルがデスティネーションネームスペースにコピーされますが、ソースの値がソースネームスペースと一致する場合はデスティネーションネームスペースの値に更新されます。この値がソースネームスペースと一致しない場合、変更なしでデスティネーションネームスペースにコピーされます。
+ソースアプリケーションをHelmを使用してインストールした場合、 `--create-namespace`旗には特別な扱いが与えられます `name`ラベルキー。復元またはフェイルオーバー プロセス中に、 Trident Protect はこのラベルを宛先名前空間にコピーしますが、ソースからの値がソース名前空間と一致する場合は、値を宛先名前空間の値に更新します。この値がソース名前空間と一致しない場合は、変更されずに宛先名前空間にコピーされます。
 
 
 
