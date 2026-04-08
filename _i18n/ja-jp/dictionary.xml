@@ -1950,12 +1950,9 @@
   <block id="2358fb4006fff416413cb9bfc04e4b73" category="list-text">長時間実行されるリストア処理には、AWSセッショントークンの有効期限が十分であることを確認してください。リストア処理中にトークンの有効期限が切れた場合、処理が失敗することがあります。</block>
   <block id="df710f89ebb9e663bd3d66607a0bf413" category="inline-link">AWSのドキュメント</block>
   <block id="f3aa7db516c38030a276a5895520407a" category="list-text">AWSリソースのクレデンシャルの詳細については、を参照してください<block ref="968595e57d50a64e3fbe0f06bc16cb91" category="inline-link-rx"></block>。</block>
-  <block id="1ff83a5266e9e025c2984e0c10dea90e" category="admonition">アプリケーションのリストア用のネームスペースがデスティネーションクラスタに存在することを確認します。</block>
-  <block id="8d433ae9a21c49e9e5433ebd408605c0" category="list-text">デスティネーションクラスタから使用可能なAppVaultのバックアップ内容を表示します。</block>
   <block id="378e6f0ba7080535a4462b5311befb40" category="paragraph">このコマンドを実行すると、AppVaultで使用可能なバックアップが表示されます。これには、元のクラスタ、対応するアプリケーション名、タイムスタンプ、アーカイブパスが含まれます。</block>
   <block id="52b5830420efb96c3a91beb52bac3b23" category="paragraph">*出力例：*</block>
   <block id="053aba80de03f3fdf626d1c858342330" category="list-text">AppVault名とアーカイブパスを使用して、アプリケーションをデスティネーションクラスタにリストアします。</block>
-  <block id="fceebbe32c1f7b24c54d6a4e8a0fa776" category="admonition">BackupRestore CRを使用できない場合は、手順2のコマンドを使用してバックアップの内容を表示できます。</block>
   <block id="4ef55c1fec2de9218af40d16cbc021a4" category="list-text">次のコマンドを使用してアプリケーションをリストアし、括弧内の値を環境の情報に置き換えます。namespace-mapping引数では、コロンで区切られた名前空間を使用して、ソース名前空間をsource1:dest1、source2:dest2の形式で正しいデスティネーション名前空間にマッピングします。例えば：</block>
   <block id="db4c6bfd26488f4d6ab2ec6129b067d8" category="section-title">Snapshotから別のネームスペースへのリストア</block>
   <block id="173f808fc086ccd7ca8b43512be2cd48" category="admonition">その<block ref="e28ab870e47892fbd81eca8fc84c45ac" prefix=" " category="inline-code"></block>属性は元の属性と新しい属性の両方が<block ref="e1e2a331ab1d8dccfea06fc8e04e2f5d" prefix=" " category="inline-code"></block>同じストレージバックエンドを使用します。 <block ref="e1e2a331ab1d8dccfea06fc8e04e2f5d" prefix=" " category="inline-code"></block>異なるストレージバックエンドを使用する場合、復元操作は失敗します。</block>
@@ -5402,7 +5399,6 @@
   <block id="1c6eace91e0dc01cf9008fefb2dab254" category="paragraph">BackupRestore CR を使用してバックアップを別の名前空間に復元すると、 Trident Protect はアプリケーションを新しい名前空間に復元し、復元されたアプリケーションのアプリケーション CR を作成します。復元されたアプリケーションを保護するには、オンデマンド バックアップまたはスナップショットを作成するか、保護スケジュールを確立します。</block>
   <block id="19aa6f89a811620499319d5de9b461ad" category="admonition">Kopia をデータ ムーバーとして使用してバックアップを復元する場合、オプションで CR で注釈を指定するか、CLI を使用して Kopia が使用する一時ストレージの動作を制御できます。参照<block ref="08f67cdc0555f043586a8a4182d9187b" category="inline-link-rx"></block>設定できるオプションの詳細については、こちらをご覧ください。使用<block ref="26d4326deff4a9a34c8bff3eaf4ad7fc" prefix=" " category="inline-code"></block>Trident Protect CLI で注釈を指定する方法の詳細については、コマンドを参照してください。</block>
   <block id="e23fef665fca7137c4d6ee6b9a9ec06a" category="list-text">宛先クラスターにはTrident Protect がインストールされています。</block>
-  <block id="cfb3749b52f4ce0c21dcdc3a9fce80f2" category="list-text">Trident Protect CLI プラグインを使用して、宛先クラスター上の AppVault CR の可用性を確認します。</block>
   <block id="00a11b317e9c8f9d94e106859445f95b" category="paragraph">カスタム リソース (CR) ファイルを使用して、スナップショットからデータを別の名前空間または元のソース名前空間に復元できます。SnapshotRestore CR を使用してスナップショットを別の名前空間に復元すると、 Trident Protect はアプリケーションを新しい名前空間に復元し、復元されたアプリケーションのアプリケーション CR を作成します。復元されたアプリケーションを保護するには、オンデマンド バックアップまたはスナップショットを作成するか、保護スケジュールを確立します。</block>
   <block id="b3cc398bcb7f536fcb9416eb16f4fff6" category="summary">試用版から製品の完全版にアップグレードする場合は、 Trident Protect コンポーネントを削除する必要がある場合があります。</block>
   <block id="dd28e2f5a84c48ae81ab3d88858e28ee" category="doc">Trident Protectをアンインストールする</block>
@@ -5476,4 +5472,12 @@
   <block id="6cb6457c77d43e645e6ad531fd87c3e7" category="admonition">名前空間を対象とした演算子を使用してインストールされたTridentからアップグレードするには（バージョン20.07～20.10）、インストールされているバージョンのTridentのアップグレード手順を使用してください。</block>
   <block id="88b982af88ded23b405644496bc0ada8" category="list-text">4つのリリース期間外のリリースからアップグレードする場合は、複数ステップのアップグレードを実行してください。アップグレード元のバージョンに対応するアップグレード手順に従って、4つのリリース期間内に収まる最新リリースにアップグレードしてください。例えば、23.01 を実行していて、25.02 にアップグレードしたい場合（：）</block>
   <block id="b100f60ae8bd43f822654ef1ab379f6f" category="paragraph">NetAppは、製品とサービスを継続的に改善・強化しています。Tridentの最新機能の一部をご紹介します。以前のリリースについては、以前のバージョンのドキュメントを参照してください。</block>
+  <block id="23dc68eb3282da7f8baebc1f7c84fff9" category="inline-link">サポートライフサイクルページ</block>
+  <block id="77fb65f5baa57704187da88d63a377c7" category="admonition">最新のTridentバージョンサポートスケジュールについては、<block ref="930ef10c78b2e47031ebe3f029ec496d" category="inline-link-rx"></block>を参照してください。</block>
+  <block id="4daca3334f00c4ec7830e587d1e0269d" category="list-text">Trident Protect をインストールするには Helm 4.x 以降が必要です。</block>
+  <block id="43da129a49cd39591bce7ddda6f0dc82" category="list-text">Trident Protect CLIプラグインを使用して、デスティネーション クラスタにAppVault CRが存在することを確認します：</block>
+  <block id="ad00af2208d1570d2b6ca4c83cbbb61e" category="admonition">AppVault CR がデスティネーション クラスタに存在しない場合は、<block ref="5f86f4618afc0bb72a8693bca73e9890" category="inline-link-macro-rx"></block>の手順に従って作成します。</block>
+  <block id="b104127df6a8992a1e7bad2dbd1aad7c" category="list-text">デスティネーション クラスタで利用可能なAppVaultのバックアップコンテンツを表示し、復元するバックアップの<block ref="bf8f430bcd54ced8b34c5fd6d4b41d3c" prefix=" " category="inline-code"></block>をメモします：</block>
+  <block id="a1d573518c6d239a09cfdd19537e0944" category="admonition">CRを使用する場合は、アプリケーションのリストアに使用する名前空間がデスティネーション クラスタに存在することを確認してください。</block>
+  <block id="5566fd919e0cd2daefbf9fbd55ec09e3" category="list-text">*spec.appArchivePath*：（必須）AppVault内のバックアップコンテンツが保存されるパス。ステップ2のコマンドを使用してバックアップの内容を表示し、復元するバックアップの<block ref="bf8f430bcd54ced8b34c5fd6d4b41d3c" prefix=" " category="inline-code"></block>を確認します。</block>
 </blocks>
