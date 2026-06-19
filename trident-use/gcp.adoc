@@ -39,16 +39,16 @@ RWO、ROX、RWX、RWOP
 
 == TridentによるCloud Volumes Service for Google Cloudのサポートの詳細
 
-Tridentではlink:https://cloud.google.com/architecture/partners/netapp-cloud-volumes/service-types["サービスタイプ"^]、次の2つのいずれかにCloud Volumes Serviceボリュームを作成できます。
+Tridentは、次の2つのlink:https://docs.cloud.google.com/netapp/volumes/docs/discover/overview["サービスタイプ"^]のいずれかにCloud Volumes Serviceボリュームを作成できます：
 
-* * CVS-Performance *：デフォルトのTridentサービスタイプ。パフォーマンスが最適化されたこのサービスタイプは、パフォーマンスを重視する本番環境のワークロードに最適です。CVS -パフォーマンスサービスタイプは、サイズが100GiB以上のボリュームをサポートするハードウェアオプションです。link:https://cloud.google.com/architecture/partners/netapp-cloud-volumes/service-levels#service_levels_for_the_cvs-performance_service_type["3つのサービスレベル"^]次のいずれかを選択できます。
+* *CVS-Performance*：デフォルトの Trident サービスタイプ。このパフォーマンス最適化されたサービスタイプは、パフォーマンスを重視する本番環境のワークロードに最適です。CVS-Performance サービスタイプは、最小サイズ 100 GiB のボリュームをサポートするハードウェアオプションです。次のいずれかを選択できますlink:https://docs.cloud.google.com/netapp/volumes/docs/discover/overview["3つのサービスレベル"^]：
 +
 ** `standard`
 ** `premium`
 ** `extreme`
 
 
-* * CVS *：CVSサービスタイプは、中程度のパフォーマンスレベルに制限された高レベルの可用性を提供します。CVSサービスタイプは、ストレージプールを使用して1GiB未満のボリュームをサポートするソフトウェアオプションです。ストレージプールには最大50個のボリュームを含めることができ、すべてのボリュームでプールの容量とパフォーマンスを共有できます。link:https://cloud.google.com/architecture/partners/netapp-cloud-volumes/service-levels#service_levels_for_the_cvs_service_type["2つのサービスレベル"^]次のいずれかを選択できます。
+* *CVS*: CVSサービスタイプは、高いゾーン可用性を提供しますが、パフォーマンスレベルは限定的から中程度です。CVSサービスタイプは、ストレージプールを使用して1 GiBという小さなボリュームをサポートするソフトウェアオプションです。ストレージプールには最大50個のボリュームを含めることができ、すべてのボリュームはプールの容量とパフォーマンスを共有します。次のいずれかを選択できますlink:https://docs.cloud.google.com/netapp/volumes/docs/discover/overview["2つのサービスレベル"^]：
 +
 ** `standardsw`
 ** `zoneredundantstandardsw`
@@ -57,7 +57,7 @@ Tridentではlink:https://cloud.google.com/architecture/partners/netapp-cloud-vo
 
 
 .必要なもの
-バックエンドを設定して使用するには https://cloud.netapp.com/cloud-volumes-service-for-gcp?utm_source=NetAppTrident_ReadTheDocs&utm_campaign=Trident["Cloud Volumes Service for Google Cloud"^]、次のものが必要です。
+ https://www.netapp.com/google-cloud/netapp-volumes/["Cloud Volumes Service for Google Cloud"^]バックエンドを設定して使用するには、以下のものが必要です：
 
 * NetApp Cloud Volumes Service で設定されたGoogle Cloudアカウント
 * Google Cloud アカウントのプロジェクト番号

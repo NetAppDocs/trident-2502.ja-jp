@@ -141,7 +141,7 @@ TridentはデスティネーションPVCのアノテーションを読み取り 
 
 == 下位ボリュームのクエリに使用 `tridentctl get`
 
-ユーティリティを使用する[`tridentctl`と、コマンドを実行して従属ボリュームを取得できます `get`。詳細については、リンク:../ Trident -reference/tridentctl.htmlコマンドとオプション]を参照して[`tridentctl`ください。
+[`tridentctl`ユーティリティを使用して、 `get`コマンドを実行すると、従属ボリュームを取得できます。詳細については、link:../trident-managing-k8s/tridentctl.html[`tridentctl`コマンドとオプション]を参照してください。
 
 [listing]
 ----
@@ -170,6 +170,5 @@ Usage:
 
 ネームスペース間のボリュームアクセスの詳細については、次の資料を参照してください。
 
-* にアクセスしますlink:https://cloud.netapp.com/blog/astra-blg-sharing-volumes-between-namespaces-say-hello-to-cross-namespace-volume-access["ネームスペース間でのボリュームの共有：ネームスペース間のボリュームアクセスを許可する場合は「Hello」と入力します"^]。
 * のデモをご覧ください link:https://media.netapp.com/page/9071d19d-1438-5ed3-a7aa-ea4d73c28b7f/solutions-products["ネットアップTV"^]。
 
