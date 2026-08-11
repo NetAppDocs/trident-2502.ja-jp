@@ -21,6 +21,7 @@ NOTE: データ保護操作中にファイルシステムをフリーズおよ�
 
 
 
+[[create-an-on-demand-snapshot]]
 == オンデマンドスナップショットを作成します
 
 オンデマンド Snapshot はいつでも作成できます。
@@ -85,6 +86,7 @@ tridentctl-protect create snapshot <my_snapshot_name> --appvault <my_appvault_na
 ====
 
 
+[[create-an-on-demand-backup]]
 == オンデマンドバックアップの作成
 
 アプリはいつでもバックアップできます。
@@ -166,6 +168,7 @@ tridentctl-protect create backup <my_backup_name> --appvault <my-vault-name> --a
 ====
 
 
+[[create-a-data-protection-schedule]]
 == データ保護スケジュールを作成
 
 保護ポリシーは、定義されたスケジュールでスナップショット、バックアップ、またはその両方を作成することでアプリケーションを保護します。Snapshot とバックアップを毎時、日次、週次、および月単位で作成し、保持するコピーの数を指定できます。
@@ -263,6 +266,7 @@ tridentctl-protect create schedule <my_schedule_name> --appvault <my_appvault_na
 ====
 
 
+[[delete-a-snapshot]]
 == Snapshot を削除します
 
 不要になったスケジュール済みまたはオンデマンドの Snapshot を削除します。
@@ -278,6 +282,7 @@ kubectl delete snapshot <snapshot_name> -n my-app-namespace
 
 
 
+[[delete-a-backup]]
 == バックアップを削除します
 
 不要になったスケジュール済みまたはオンデマンドのバックアップを削除します。
@@ -293,6 +298,7 @@ kubectl delete backup <backup_name> -n my-app-namespace
 
 
 
+[[check-the-status-of-a-backup-operation]]
 == バックアップ処理のステータスの確認
 
 コマンドラインを使用して、実行中、完了、または失敗したバックアップ処理のステータスを確認できます。
@@ -308,6 +314,7 @@ kubectl get backup -n <namespace_name> <my_backup_cr_name> -o jsonpath='{.status
 
 
 
+[[enable-backup-and-restore-for-azure-netapp-files-anf-operations]]
 == azure-anf-files NetApp（ANF）処理のバックアップとリストアを実現
 
 Trident Protect をインストールしている場合は、azure-netapp-files ストレージ クラスを使用し、 Trident 24.06 より前に作成されたストレージ バックエンドに対して、スペース効率の高いバックアップと復元機能を有効にすることができます。この機能は NFSv4 ボリュームで動作し、容量プールから追加のスペースを消費しません。

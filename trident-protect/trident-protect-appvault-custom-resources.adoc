@@ -20,12 +20,14 @@ Trident Protect のバケット カスタム リソース (CR) は、AppVault �
 
 
 
+[[configure-appvault-authentication-and-passwords]]
 == AppVault認証とパスワードの設定
 
 AppVault CRを作成する前に、AppVaultおよび選択したデータムーバーがプロバイダおよび関連リソースで認証できることを確認する必要があります。
 
 
 
+[[data-mover-repository-passwords]]
 === Data Moverリポジトリのパスワード
 
 CR またはTrident Protect CLI プラグインを使用して AppVault オブジェクトを作成するときに、オプションで、Restic および Kopia リポジトリの暗号化用のカスタム パスワードを含む Kubernetes シークレットを使用するようにTrident Protect に指示できます。秘密を指定しない場合、 Trident Protect はデフォルトのパスワードを使用します。
@@ -74,6 +76,7 @@ kubectl create secret generic my-optional-data-mover-secret \
 ====
 
 
+[[s3-compatible-storage-iam-permissions]]
 === S3互換ストレージのIAM権限
 
 Amazon S3、Generic S3などのS3互換ストレージにアクセスする場合、 https://docs.netapp.com/us-en/storagegrid/s3/index.html["StorageGRID S3"^] 、 または https://docs.netapp.com/us-en/ontap/s3-config/["ONTAP S3"^]Trident Protect を使用する場合は、提供したユーザー認証情報にバケットにアクセスするために必要な権限があることを確認する必要があります。以下は、 Trident Protect によるアクセスに必要な最小限の権限を付与するポリシーの例です。このポリシーは、S3 互換バケットポリシーを管理するユーザーに適用できます。
@@ -100,6 +103,7 @@ Amazon S3ポリシーの詳細については、  https://docs.aws.amazon.com/Am
 
 
 
+[[appvault-key-generation-examples-for-cloud-providers]]
 === クラウドプロバイダのAppVaultキー生成例
 
 AppVault CRを定義するときは、プロバイダがホストするリソースにアクセスするための資格情報を含める必要があります。クレデンシャルのキーの生成方法は、プロバイダによって異なります。次に、いくつかのプロバイダのコマンドラインキー生成の例を示します。次の例を使用して、各クラウドプロバイダのクレデンシャル用のキーを作成できます。
@@ -167,12 +171,14 @@ kubectl create secret generic <secret-name> \
 ====
 
 
+[[appvault-creation-examples]]
 == AppVaultの作成例
 
 各プロバイダのAppVault定義の例を次に示します。
 
 
 
+[[appvault-cr-examples]]
 === AppVault CRの例
 
 次のCR例を使用して、クラウドプロバイダごとにAppVaultオブジェクトを作成できます。
@@ -353,6 +359,7 @@ spec:
 ====
 
 
+[[appvault-creation-examples-using-the-trident-protect-cli]]
 === Trident Protect CLI を使用した AppVault 作成例
 
 次のCLIコマンド例を使用して、プロバイダごとにAppVault CRSを作成できます。
@@ -442,6 +449,7 @@ tridentctl-protect create vault StorageGridS3 <vault-name> \
 ====
 
 
+[[view-appvault-information]]
 == AppVault情報の表示
 
 Trident Protect CLI プラグインを使用して、クラスター上に作成した AppVault オブジェクトに関する情報を表示できます。
@@ -483,6 +491,7 @@ tridentctl-protect get appvaultcontent gcp-vault \
 
 
 
+[[remove-an-appvault]]
 == AppVaultの削除
 
 AppVaultオブジェクトはいつでも削除できます。

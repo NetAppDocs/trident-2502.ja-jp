@@ -16,6 +16,7 @@ Tridentが通信に使用するポートの詳細については、こちらを�
 
 
 
+[[trident-ports]]
 == Tridentポート
 
 Tridentは次のポートを介して通信します。

@@ -21,6 +21,7 @@ NOTE: アプリケーションを復元すると、そのアプリケーショ�
 
 
 
+[[namespace-annotations-and-labels-during-restore-and-failover-operations]]
 == リストア処理とフェイルオーバー処理時のネームスペースのアノテーションとラベル
 
 リストア処理とフェイルオーバー処理では、デスティネーションネームスペースのラベルとアノテーションがソースネームスペースのラベルとアノテーションと一致するように作成されます。デスティネーションネームスペースに存在しないソースネームスペースのラベルまたはアノテーションが追加され、すでに存在するラベルまたはアノテーションがソースネームスペースの値に一致するように上書きされます。デスティネーションネームスペースにのみ存在するラベルやアノテーションは変更されません。
@@ -38,6 +39,7 @@ kubectl set env -n trident-protect deploy/trident-protect-controller-manager RES
 
 
 
+[[example]]
 === 例
 
 次の例は、ソースとデスティネーションのネームスペースを示しています。それぞれにアノテーションとラベルが設定されています。処理の前後のデスティネーションネームスペースの状態、およびデスティネーションネームスペースでアノテーションやラベルを組み合わせたり上書きしたりする方法を確認できます。
@@ -100,6 +102,7 @@ kubectl set env -n trident-protect deploy/trident-protect-controller-manager RES
 |===
 
 
+[[restore-from-a-backup-to-a-different-namespace]]
 == バックアップから別のネームスペースへのリストア
 
 BackupRestore CR を使用してバックアップを別の名前空間に復元すると、 Trident Protect はアプリケーションを新しい名前空間に復元し、復元されたアプリケーションのアプリケーション CR を作成します。復元されたアプリケーションを保護するには、オンデマンド バックアップまたはスナップショットを作成するか、保護スケジュールを確立します。
@@ -228,6 +231,7 @@ tridentctl-protect create backuprestore <my_restore_name> \
 ====
 
 
+[[restore-from-a-backup-to-the-original-namespace]]
 == バックアップから元のネームスペースへのリストア
 
 バックアップはいつでも元のネームスペースにリストアできます。
@@ -349,6 +353,7 @@ tridentctl-protect create backupinplacerestore <my_restore_name> \
 ====
 
 
+[[restore-from-a-backup-to-a-different-cluster]]
 == バックアップから別のクラスタへのリストア
 
 元のクラスタで問題が発生した場合は、バックアップを別のクラスタにリストアできます。
@@ -470,6 +475,7 @@ tridentctl-protect create backuprestore <restore_name> \
 ====
 
 
+[[restore-from-a-snapshot-to-a-different-namespace]]
 == Snapshotから別のネームスペースへのリストア
 
 カスタム リソース (CR) ファイルを使用して、スナップショットからデータを別の名前空間または元のソース名前空間に復元できます。SnapshotRestore CR を使用してスナップショットを別の名前空間に復元すると、 Trident Protect はアプリケーションを新しい名前空間に復元し、復元されたアプリケーションのアプリケーション CR を作成します。復元されたアプリケーションを保護するには、オンデマンド バックアップまたはスナップショットを作成するか、保護スケジュールを確立します。
@@ -602,6 +608,7 @@ tridentctl-protect create snapshotrestore <my_restore_name> \
 ====
 
 
+[[restore-from-a-snapshot-to-the-original-namespace]]
 == Snapshotから元のネームスペースへのリストア
 
 Snapshotはいつでも元のネームスペースにリストアできます。
@@ -718,6 +725,7 @@ tridentctl-protect create snapshotinplacerestore <my_restore_name> \
 ====
 
 
+[[check-the-status-of-a-restore-operation]]
 == リストア処理のステータスの確認
 
 コマンドラインを使用して、実行中、完了、または失敗したリストア処理のステータスを確認できます。

@@ -16,6 +16,7 @@ Tridentのインストール時にONTAP SANドライバを作成して使用す�
 
 
 
+[[backend-configuration-options]]
 == バックエンド構成オプション
 
 バックエンド設定オプションについては、次の表を参照してください。
@@ -144,6 +145,7 @@ NOTE: SVMでアグリゲートが更新されると、Tridentコントローラ�
 |===
 
 
+[[recommendations-for-using-formatoptions]]
 === formatOptionsの使用に関する推奨事項
 
 Tridentでは、フォーマット処理を高速化するために、次のオプションを推奨しています。
@@ -155,6 +157,7 @@ Tridentでは、フォーマット処理を高速化するために、次のオ�
 
 
 
+[[backend-configuration-options-for-provisioning-volumes]]
 == ボリュームのプロビジョニング用のバックエンド構成オプション
 
 設定のセクションで、これらのオプションを使用してデフォルトのプロビジョニングを制御できます `defaults`。例については、以下の設定例を参照してください。
@@ -198,6 +201,7 @@ Tridentでは、フォーマット処理を高速化するために、次のオ�
 |===
 
 
+[[volume-provisioning-examples]]
 === ボリュームプロビジョニングの例
 
 デフォルトが定義されている例を次に示します。
@@ -243,6 +247,7 @@ image::../media/vol-show-san.png[に、 volume show コマンドの出力を示�
 
 
 
+[[minimal-configuration-examples]]
 == 最小限の設定例
 
 次の例は、ほとんどのパラメータをデフォルトのままにする基本的な設定を示しています。これは、バックエンドを定義する最も簡単な方法です。
@@ -443,6 +448,7 @@ defaults:
 ====
 
 
+[[examples-of-backends-with-virtual-pools]]
 == 仮想プールを使用するバックエンドの例
 
 これらのサンプルバックエンド定義ファイルでは、none、 `spaceAllocation`false、false `encryption`など、すべてのストレージプールに特定のデフォルトが設定されています `spaceReserve`。仮想プールは、ストレージセクションで定義します。
@@ -587,6 +593,7 @@ storage:
 ====
 
 
+[[map-backends-to-storageclasses]]
 == バックエンドを StorageClasses にマッピングします
 
 次のStorageClass定義は、を参照して<<仮想プールを使用するバックエンドの例>>ください。フィールドを使用して `parameters.selector`、各StorageClassはボリュームのホストに使用できる仮想プールを呼び出します。ボリュームには、選択した仮想プール内で定義された要素があります。

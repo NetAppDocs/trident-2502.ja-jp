@@ -16,6 +16,7 @@ summary: 'バックエンドは、Tridentとストレージシステムの間の
 
 
 
+[[tridentbackendconfig]]
 == `TridentBackendConfig`
 
 `TridentBackendConfig`(`tbc`, `tbconfig`, `tbackendconfig`)は、を使用してTridentバックエンドを管理できるフロントエンドの名前空間CRDです。 `kubectl`Kubernetes管理者やストレージ管理者は、Kubernetes CLIを使用して直接バックエンドを作成、管理できるようになりまし(`tridentctl`た。専用のコマンドラインユーティリティは必要ありません）。
@@ -72,6 +73,7 @@ TIP: で作成されたバックエンドに `tridentctl`は、関連付けら�
 
 
 
+[[steps-overview]]
 == 手順の概要
 
 を使用して新しいバックエンドを作成するには `kubectl`、次の手順を実行します。
@@ -84,6 +86,7 @@ TIP: で作成されたバックエンドに `tridentctl`は、関連付けら�
 
 
 
+[[step-1-create-a-kubernetes-secret]]
 == 手順 1 ： Kubernetes Secret を作成します
 
 バックエンドのアクセスクレデンシャルを含むシークレットを作成します。ストレージサービス / プラットフォームごとに異なる固有の機能です。次に例を示します。
@@ -190,6 +193,7 @@ CHAP ターゲットイニシエータシークレット。useCHAP = true の場
 
 
 
+[[step-2-create-the-tridentbackendconfig-cr]]
 == ステップ2：CRを作成する `TridentBackendConfig`
 
 これでCRを作成する準備ができ `TridentBackendConfig`ました。この例では、ドライバを使用するバックエンドが `ontap-san`、次のオブジェクトを使用して作成され `TridentBackendConfig`ます。
@@ -216,6 +220,7 @@ spec:
 ----
 
 
+[[step-3-verify-the-status-of-the-tridentbackendconfig-cr]]
 == 手順3：CRのステータスを確認する `TridentBackendConfig`
 
 CRを作成したので `TridentBackendConfig`、ステータスを確認できます。次の例を参照してください。
@@ -246,6 +251,7 @@ backend-tbc-ontap-san   ontap-san-backend     8d24fce7-6f60-4d4a-8ef6-bab2699e6a
 
 
 
+[[optional-step-4-get-more-details]]
 == （オプション）手順 4 ：詳細を確認します
 
 バックエンドに関する詳細情報を確認するには、次のコマンドを実行します。

@@ -16,6 +16,7 @@ Tridentをインストールする前に、これらの一般的なシステム�
 
 
 
+[[critical-information-about-trident]]
 == Tridentに関する重要な情報
 
 * Tridentに関する次の重要な情報をお読みください。*
@@ -36,6 +37,7 @@ Tridentをインストールする前に、これらの一般的なシステム�
 ====
 
 
+[[supported-frontends-orchestrators]]
 == サポートされるフロントエンド（オーケストレーションツール）
 
 Tridentは、次のような複数のコンテナエンジンとオーケストレーションツールをサポートしています。
@@ -63,6 +65,7 @@ WARNING: TridentがインストールされているKubernetesクラスタを1.2
 
 
 
+[[supported-backends-storage]]
 == サポートされるバックエンド（ストレージ）
 
 Tridentを使用するには、次のサポートされているバックエンドが1つ以上必要です。
@@ -78,6 +81,7 @@ Tridentを使用するには、次のサポートされているバックエン�
 
 
 
+[[trident-support-for-kubevirt-and-openshift-virtualization]]
 == TridentによるKubeVirtとOpenShiftによる仮想化のサポート
 
 .サポートされるストレージドライバ：
@@ -104,6 +108,7 @@ Tridentは、KubeVirtおよびOpenShift仮想化用に次のONTAPドライバを
 
 
 
+[[feature-requirements]]
 == 機能の要件
 
 次の表は、このリリースのTridentで使用できる機能と、このリリースでサポートされるKubernetesのバージョンをまとめたものです。
@@ -170,6 +175,7 @@ Tridentは、KubeVirtおよびOpenShift仮想化用に次のONTAPドライバを
 |===
 
 
+[[tested-host-operating-systems]]
 == テスト済みのホストオペレーティングシステム
 
 Tridentは特定のオペレーティングシステムを正式にサポートしていませんが、次の機能が動作することがわかっています。
@@ -190,6 +196,7 @@ NOTE: NVMe/TCPにはRHEL 9以降が必要です。
 
 
 
+[[host-configuration]]
 == ホストの設定
 
 Kubernetesクラスタ内のすべてのワーカーノードが、ポッド用にプロビジョニングしたボリュームをマウントできる必要があります。ワーカーノードを準備するには、ドライバの選択に基づいてNFS、iSCSI、またはNVMeのツールをインストールする必要があります。
@@ -198,6 +205,7 @@ link:../trident-use/worker-node-prep.html["ワーカーノードを準備しま�
 
 
 
+[[storage-system-configuration]]
 == ストレージシステムの構成：
 
 バックエンド構成でTridentを使用するには、ストレージシステムの変更が必要になる場合があります。
@@ -206,6 +214,7 @@ link:../trident-use/backends.html["バックエンドを設定"]
 
 
 
+[[trident-ports]]
 == Tridentポート
 
 Tridentでは、通信のために特定のポートにアクセスする必要があります。
@@ -214,6 +223,7 @@ link:../trident-reference/ports.html["Tridentポート"]
 
 
 
+[[container-images-and-corresponding-kubernetes-versions]]
 == コンテナイメージと対応する Kubernetes バージョン
 
 エアギャップを使用したインストールでは、Tridentのインストールに必要なコンテナイメージの参照先を以下に示します。コマンドを使用し `tridentctl images`て、必要なコンテナイメージのリストを確認します。

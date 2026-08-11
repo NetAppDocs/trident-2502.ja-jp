@@ -16,6 +16,7 @@ summary: ' `tridentctl import`または PVC アノテーションを使用して
 
 
 
+[[overview-and-considerations]]
 == 概要と考慮事項
 
 Tridentにボリュームをインポートする目的は次のとおりです。
@@ -52,6 +53,7 @@ TIP: このオプションは、コンテナ化されたワークロードに Ku
 
 
 
+[[import-a-volume]]
 == ボリュームをインポートします
 
  `tridentctl import`を使用するか、Tridentインポートアノテーションを使用してPVCを作成することで、ボリュームをインポートできます。
@@ -147,12 +149,14 @@ Trident はボリュームを自動的にインポートし、PVC にバイン�
 ====
 
 
+[[examples]]
 == 例
 
 サポートされているドライバについて、次のボリュームインポートの例を確認してください。
 
 
 
+[[ontap-nas-and-ontap-nas-flexgroup]]
 === ONTAP NASおよびONTAP NAS FlexGroup
 
 Tridentは、ドライバと `ontap-nas-flexgroup`ドライバを使用したボリュームインポートをサポートしてい `ontap-nas`ます
@@ -260,6 +264,7 @@ spec:
 ====
 
 
+[[ontap-san]]
 === ONTAP SAN
 
 Tridentは、ドライバと `ontap-san-economy`ドライバを使用したボリュームインポートをサポートしてい `ontap-san`ます
@@ -311,6 +316,7 @@ image:./san-import-igroup.png["iqnおよびクラスタiqnにマッピングさ�
 ====
 
 
+[[element]]
 === 要素
 
 Tridentは、NetApp Elementソフトウェアとドライバを使用したNetApp HCIボリュームインポートをサポートしています `solidfire-san`。
@@ -332,6 +338,7 @@ tridentctl import volume element_default element-managed -f pvc-basic-import.yam
 ----
 
 
+[[google-cloud-platform]]
 === Google Cloud Platform
 
 Tridentはドライバを使用したボリュームインポートをサポートしてい `gcp-cvs`ます。
@@ -354,6 +361,7 @@ tridentctl import volume gcpcvs_YEppr adroit-jolly-swift -f <path-to-pvc-file> -
 ----
 
 
+[[azure-netapp-files]]
 === Azure NetApp Files
 
 Tridentはドライバを使用したボリュームインポートをサポートしてい `azure-netapp-files`ます。
@@ -375,6 +383,7 @@ tridentctl import volume azurenetappfiles_40517 importvol1 -f <path-to-pvc-file>
 ----
 
 
+[[google-cloud-netapp-volumes]]
 === Google Cloud NetAppボリューム
 
 Tridentはドライバを使用したボリュームインポートをサポートしてい `google-cloud-netapp-volumes`ます。

@@ -18,6 +18,7 @@ summary: まず、運用環境、アプリケーション クラスター、ア�
 
 
 
+[[trident-protect-kubernetes-cluster-compatibility]]
 == Trident Protect Kubernetes クラスターの互換性
 
 Trident Protect は、以下を含む幅広いフルマネージドおよびセルフマネージド Kubernetes 製品と互換性があります。
@@ -40,6 +41,7 @@ Trident Protect は、以下を含む幅広いフルマネージドおよびセ�
 ====
 
 
+[[trident-protect-storage-backend-compatibility]]
 == Trident Protect ストレージバックエンドの互換性
 
 Trident Protect は次のストレージ バックエンドをサポートしています。
@@ -66,6 +68,7 @@ Trident Protect は次のストレージ バックエンドをサポートして
 
 
 
+[[requirements-for-nas-economy-volumes]]
 == NASエコノミーボリュームの要件
 
 Trident Protect は、NAS エコノミー ボリュームへのバックアップおよび復元操作をサポートします。スナップショット、クローン、および NAS エコノミー ボリュームへのSnapMirrorレプリケーションは現在サポートされていません。Trident Protect で使用する予定の各 nas-economy ボリュームに対してスナップショット ディレクトリを有効にする必要があります。
@@ -90,6 +93,7 @@ NOTE: 新しいボリュームに対してSnapshotディレクトリをデフォ
 
 
 
+[[protecting-data-with-kubevirt-vms]]
 == KubeVirt VMによるデータ保護
 
 Trident Protect 24.10 と 24.10.1 以降では、KubeVirt VM 上で実行されているアプリケーションを保護する場合の動作が異なります。どちらのバージョンでも、データ保護操作中にファイルシステムのフリーズとフリーズ解除を有効または無効にすることができます。
@@ -112,6 +116,7 @@ kubectl set env deployment/trident-protect-controller-manager NEPTUNE_VM_FREEZE=
 ----
 
 
+[[requirements-for-snapmirror-replication]]
 == SnapMirrorレプリケーションの要件
 
 NetApp SnapMirrorレプリケーションは、次のONTAPソリューションのTrident Protect で使用できます。
@@ -124,6 +129,7 @@ NetApp SnapMirrorレプリケーションは、次のONTAPソリューション�
 
 
 
+[[ontap-cluster-requirements-for-snapmirror-replication]]
 === SnapMirrorレプリケーション用のONTAPクラスタの要件
 
 SnapMirrorレプリケーションを使用する場合は、ONTAPクラスタが次の要件を満たしていることを確認します。
@@ -139,6 +145,7 @@ SnapMirrorレプリケーションを使用する場合は、ONTAPクラスタ�
 
 
 
+[[peering-considerations-for-snapmirror-replication]]
 === SnapMirrorレプリケーションのピアリングに関する考慮事項
 
 ストレージバックエンドピアリングを使用する場合は、環境が次の要件を満たしていることを確認してください。
@@ -155,6 +162,7 @@ NOTE: 2つのONTAPクラスタ間のレプリケーション関係で使用さ�
 
 
 
+[[trident-ontap-configuration-for-snapmirror-replication]]
 === SnapMirrorレプリケーション用のTrident / ONTAPの設定
 
 Trident Protect では、ソース クラスターと宛先クラスターの両方のレプリケーションをサポートするストレージ バックエンドを少なくとも 1 つ構成する必要があります。ソース クラスターと宛先クラスターが同じ場合、復元力を最大限に高めるには、宛先アプリケーションでソース アプリケーションとは異なるストレージ バックエンドを使用する必要があります。

@@ -22,6 +22,7 @@ TridentとAmazon FSx for NetApp ONTAPを使用すると、Amazon Elastic Kuberne
 
 
 
+[[requirements]]
 == 要件
 
 link:../trident-get-started/requirements.html["Tridentの要件"]FSx for ONTAPとTridentを統合するには、さらに次のものが必要です。
@@ -37,6 +38,7 @@ NOTE: EKS AMIタイプに応じて、Amazon LinuxおよびUbuntu（AMIS）で必
 
 
 
+[[considerations]]
 == 考慮事項
 
 * SMBボリューム：
@@ -55,6 +57,7 @@ NOTE: TridentにIAMロールを指定する場合は、、 `apiKey`、および 
 
 
 
+[[authentication]]
 == 認証
 
 Tridentには2つの認証モードがあります。
@@ -75,6 +78,7 @@ WARNING: Tridentは、SVMユーザ、または別の名前で同じロールの�
 
 
 
+[[tested-amazon-machine-images-amis]]
 == テスト済みのAmazonマシンイメージ（AMIS）
 
 EKSクラスタはさまざまなオペレーティングシステムをサポートしていますが、AWSではコンテナとEKS用に特定のAmazon Machine Images（AMIS）が最適化されています。次のAMIはTrident 24.10でテストされています。
@@ -125,6 +129,7 @@ NOTE: 目的のAMIがここにリストされていない場合、サポート�
 
 
 
+[[find-more-information]]
 == 詳細情報
 
 * https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html["Amazon FSX for NetApp ONTAP のドキュメント"^]
