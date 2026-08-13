@@ -36,6 +36,9 @@ Tridentをインストールする前に、これらの一般的なシステム�
 =====
 ====
 
+NOTE: Tridentは、link:https://access.redhat.com/support/policy/updates/openshift["Red Hat Extended Update Support（EUS）リリースライフサイクル"]に準拠して古いOpenShiftバージョンを引き続きサポートしています。これは、アップストリームで公式にサポートされなくなったKubernetesバージョンに依存している場合でも同様です。このような場合にTridentをインストールする際は、Kubernetesバージョンに関する警告メッセージを無視しても問題ありません。
+
+
 
 [[supported-frontends-orchestrators]]
 == サポートされるフロントエンド（オーケストレーションツール）
@@ -43,16 +46,16 @@ Tridentをインストールする前に、これらの一般的なシステム�
 Tridentは、次のような複数のコンテナエンジンとオーケストレーションツールをサポートしています。
 
 * Anthosオンプレミス（VMware）とAnthos（ベアメタル1.16）
-* Kubernetes 1.26~1.32
-* オープンシフト 4.13 - 4.18
+* Kubernetes 1.25 - 1.32
+* OpenShift 4.12 - 4.18
 * Rancher Kubernetes Engine 2（RKE2）v1.26.7+rke2r1、v1.28.5+rke2r1
 
 
 Trident オペレータは、次のリリースでサポートされています。
 
 * Anthosオンプレミス（VMware）とAnthos（ベアメタル1.16）
-* Kubernetes 1.26~1.32
-* オープンシフト 4.13-4.18
+* Kubernetes 1.25 - 1.32
+* OpenShift 4.12- 4.18
 * Rancher Kubernetes Engine 2（RKE2）v1.26.7+rke2r1、v1.28.5+rke2r1
 
 
@@ -119,56 +122,56 @@ Tridentは、KubeVirtおよびOpenShift仮想化用に次のONTAPドライバを
 
 
 | Trident  a| 
-1.26 - 1.32
+1.25 - 1.32
  a| 
 いいえ
 
 
 
 | ボリューム Snapshot  a| 
-1.26 - 1.32
+1.25 - 1.32
  a| 
 いいえ
 
 
 
 | ボリューム Snapshot からの PVC  a| 
-1.26 - 1.32
+1.25 - 1.32
  a| 
 いいえ
 
 
 
 | iSCSI PV のサイズ変更  a| 
-1.26 - 1.32
+1.25 - 1.32
  a| 
 いいえ
 
 
 
 | ONTAP 双方向 CHAP  a| 
-1.26 - 1.32
+1.25 - 1.32
  a| 
 いいえ
 
 
 
 | 動的エクスポートポリシー  a| 
-1.26 - 1.32
+1.25 - 1.32
  a| 
 いいえ
 
 
 
 | Trident のオペレータ  a| 
-1.26 - 1.32
+1.25 - 1.32
  a| 
 いいえ
 
 
 
 | CSI トポロジ  a| 
-1.26 - 1.32
+1.25 - 1.32
  a| 
 いいえ
 
@@ -233,7 +236,7 @@ link:../trident-reference/ports.html["Tridentポート"]
 | Kubernetesのバージョン | コンテナイメージ 
 
 
-| v1.26.0、v1.27.0、v1.28.0、v1.29.0、v1.30.0、 v1.31.0、v1.32.0  a| 
+| v1.25.0、v1.26.0、v1.27.0、v1.28.0、v1.29.0、v1.30.0、v1.31.0、v1.32.0  a| 
 * Docker .io / NetApp / Trident：25.02.0
 * docker.io / netapp/trident-autosupport：25.02
 * registry.k8s.io/sig-storage/csi-provisioner：v5.2.0
